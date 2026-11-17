@@ -8,7 +8,8 @@ A hub for Canadian startups. Founders post what they are building and their plan
 - **Company profiles:** logo, pitch, 12-month plan, traction, website, LinkedIn, demo links (YouTube links play inside the app), team, open roles, progress updates
 - **Raising now:** who is fundraising and how much, with a private watchlist
 - **Investor directory:** cheque size, stages, sectors and thesis
-- **Intro requests:** private between sender and recipient, with an inbox
+- **Messaging:** an intro request opens a private conversation; both sides reply inside the app
+- **Email verification:** people must confirm their email before publishing or messaging
 - **Admin tools:** mark startups as verified, remove listings, load example companies
 
 ## How it is built
@@ -24,8 +25,7 @@ Sign-in and the database are provided by Firebase (Authentication and Cloud Fire
 The code is complete but has not yet been run against a real Firebase project. It was tested in a browser against a stand-in for Firebase, so the screens and flows are checked while the security rules are not. Follow `SETUP.md`, then try sign-up, publishing a profile and sending an intro request before inviting anyone.
 
 ## Not built yet
-- Email notifications when someone sends an intro request
-- Chat-style messaging (intro requests are one note each, with reply by email)
-- Email verification and spam controls
+- Email notifications for new messages (this needs Firebase's paid plan or an outside email service)
+- Reporting and blocking for spam
 - French language support
 - Paging for very large directories (fine for hundreds of companies)
