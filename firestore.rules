@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    // A listing needs a name and a small logo. "verified" and "sample" are admin-only fields.
+    function validListing() {
+      return request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.get('logo', '') is string
+        && request.resource.data.get('logo', '').size() < 70000;
+    }
+    function noAdminFieldsOnCreate() {
+      return !request.resource.data.keys().hasAny(['verified', 'sample']);
+    }
+    function noAdminFieldsChanged() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'sample']);
+    }
+
+    // Startup profiles: anyone can read, each person edits only their own (document id = their user id).
+    match /startups/{uid} {
+      allow read: if true;
+      allow create: if signedIn() && request.auth.uid == uid && validListing() && noAdminFieldsOnCreate();
+      allow update: if signedIn() && request.auth.uid == uid && validListing() && noAdminFieldsChanged();
+      allow delete: if signedIn() && request.auth.uid == uid;
+      allow write: if isAdmin();
+    }
+
+    // Investor profiles: same pattern.
+    match /investors/{uid} {
+      allow read: if true;
+      allow create: if signedIn() && request.auth.uid == uid && validListing() && noAdminFieldsOnCreate();
+      allow update: if signedIn() && request.auth.uid == uid && validListing() && noAdminFieldsChanged();
+      allow delete: if signedIn() && request.auth.uid == uid;
+      allow write: if isAdmin();
+    }
+
+    // Intro requests: private to the sender and the recipient.
+    match /intros/{id} {
+      allow read, delete: if signedIn()
+        && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+      allow create, update: if signedIn()
+        && request.resource.data.from == request.auth.uid
+        && id == request.auth.uid + '_' + request.resource.data.kind + '_' + request.resource.data.to
+        && request.resource.data.msg is string
+        && request.resource.data.msg.size() > 0
+        && request.resource.data.msg.size() <= 500
+        && request.resource.data.replyTo == request.auth.token.email;
+    }
+
+    // Each person's private data (watchlist).
+    match /users/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Admin list. Add admins by hand in the Firebase console; nobody can write here from the app.
+    match /admins/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}

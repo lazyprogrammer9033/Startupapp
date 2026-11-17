@@ -136,7 +136,7 @@ form.profile{display:grid;gap:8px;max-width:720px}
 .row{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
 label.f{display:grid;gap:6px;font-size:.82rem;font-weight:600}
 label.f span.h{font-weight:400;color:var(--muted)}
-.fgroup input[type=text],.fgroup input[type=number],.fgroup select,textarea{width:100%;background:var(--fill);border:0;border-radius:12px;padding:12px;min-height:46px}
+.fgroup input[type=text],.fgroup input[type=email],.fgroup input[type=password],.fgroup input[type=number],.fgroup select,textarea{width:100%;background:var(--fill);border:0;border-radius:12px;padding:12px;min-height:46px}
 textarea{min-height:100px;resize:vertical}
 fieldset{border:0;padding:0;margin:0}
 legend{font-size:.82rem;font-weight:600;padding:0;margin-bottom:8px}
@@ -171,6 +171,12 @@ legend{font-size:.82rem;font-weight:600;padding:0;margin-bottom:8px}
 .introbox{margin-top:20px;background:var(--bg);border-radius:18px;padding:14px;display:grid;gap:10px}
 .introbox textarea{background:var(--surface)}
 .fine{font-size:.78rem;color:var(--muted)}
+.mono.haslogo{background:var(--fill);overflow:hidden;padding:0}
+.mono img{width:100%;height:100%;object-fit:cover;display:block}
+.logorow{display:flex;align-items:center;gap:12px}
+.logorow input[type=file]{font-size:.85rem;max-width:100%}
+.video{aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000}
+.video iframe{width:100%;height:100%;border:0;display:block}
 .links{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
 .btn.sm{min-height:40px;padding:0 16px;font-size:.9rem;overflow-wrap:anywhere}
 .demos{display:grid;gap:8px;margin-top:6px}
@@ -191,7 +197,7 @@ legend{font-size:.82rem;font-weight:600;padding:0;margin-bottom:8px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 1.5 13.5 14 8 11 2.5 14z" fill="#fff"/></svg></span>LaunchNorth<small>Prototype</small></div>
+  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 1.5 13.5 14 8 11 2.5 14z" fill="#fff"/></svg></span>LaunchNorth<small id="mode" hidden>Demo</small></div>
   <h1 id="title">Startups</h1>
   <p id="sub"></p>
   <div class="stats" id="stats"></div>
@@ -209,6 +215,7 @@ legend{font-size:.82rem;font-weight:600;padding:0;margin-bottom:8px}
 <div id="modal"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
+<script src="firebase-config.js"></script>
 <script>
 const PROV={AB:'Alberta',BC:'British Columbia',MB:'Manitoba',NB:'New Brunswick',NL:'Newfoundland and Labrador',NS:'Nova Scotia',NT:'Northwest Territories',NU:'Nunavut',ON:'Ontario',PE:'Prince Edward Island',QC:'Quebec',SK:'Saskatchewan',YT:'Yukon'};
 const SECTORS=['AgTech','AI & software','Cleantech','Consumer & retail','EdTech','Fintech','Food & beverage','GovTech','Health','Logistics','Manufacturing','Ocean tech','Other'];
@@ -219,7 +226,7 @@ const ITYPES=['Angel','Angel group','VC fund','Family office','Corporate'];
 const ROUTES=['startups','raising','investors','my-profile','connections'];
 const TITLES={startups:['Startups','See what founders across Canada are building, and who needs a hand.'],raising:['Raising now','Startups looking for investment today.'],investors:['Investors','People and funds backing Canadian startups.'],connections:['Inbox','Intro requests you have sent and received.'],'my-profile':['Profile','Tell the community what you are building.']};
 
-const S={db:null,user:null,uid:null,canWrite:true,status:'loading',startups:[],investors:[],intros:[],watch:new Set(),
+const S={live:false,demo:false,authReady:false,uid:null,me:null,admin:false,status:'loading',startups:[],investors:[],sent:[],recv:[],watch:new Set(),logoDraft:undefined,
   route:'startups',f:{q:'',prov:'',sector:'',stage:'',ask:'',has:''},watchOnly:false,role:'founder',dirty:false};
 
 const $=(s,r=document)=>r.querySelector(s);
@@ -227,7 +234,9 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=n=>new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD',notation:'compact',maximumFractionDigits:1}).format(n||0);
 const initials=n=>String(n||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
 const hue=s=>{let h=0;for(const c of String(s||''))h=(h*31+c.charCodeAt(0))%360;return h};
-const mono=(d,key)=>`<span class="mono" style="--h:${hue(d[key]||d.name)}" aria-hidden="true">${esc(initials(d.name))}</span>`;
+const logoOk=l=>typeof l==='string'&&l.length<70000&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(l);
+const yt=u=>{let v='';try{const x=new URL(u);if(x.hostname==='youtu.be')v=x.pathname.slice(1);else if(/(^|\.)youtube\.com$/.test(x.hostname))v=x.searchParams.get('v')||(x.pathname.match(/^\/(?:embed|shorts|live)\/([\w-]+)/)||[])[1]||''}catch(_){}return /^[\w-]{6,15}$/.test(v)?v:''};
+const mono=(d,key)=>logoOk(d.logo)?`<span class="mono haslogo" aria-hidden="true"><img src="${d.logo}" alt=""></span>`:`<span class="mono" style="--h:${hue(d[key]||d.name)}" aria-hidden="true">${esc(initials(d.name))}</span>`;
 const opts=(arr,sel,blank)=>(blank?`<option value="">${esc(blank)}</option>`:'')+arr.map(v=>{const[val,lab]=Array.isArray(v)?v:[v,v];return `<option value="${esc(val)}"${val===sel?' selected':''}>${esc(lab)}</option>`}).join('');
 const provOpts=(sel,blank)=>opts(Object.entries(PROV),sel,blank);
 let toastT;function toast(m){$('#toast').textContent=m;clearTimeout(toastT);toastT=setTimeout(()=>$('#toast').textContent='',3500)}
@@ -237,7 +246,7 @@ const demos=s=>(Array.isArray(s.demos)?s.demos:[]).map(d=>({t:String(d&&d.t||'De
 const lines=v=>(Array.isArray(v)?v:[]).map(String).filter(Boolean);
 const mine=()=>S.startups.find(s=>s.id===S.uid);
 const myInv=()=>S.investors.find(s=>s.id===S.uid);
-const locked=()=>!S.db||!S.uid||!S.canWrite;
+const locked=()=>!S.live||!S.uid;
 
 /* ---------- views ---------- */
 function stats(){
@@ -250,7 +259,7 @@ function stats(){
 }
 function filtered(){
   const f=S.f,q=f.q.trim().toLowerCase();
-  return [...S.startups].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).filter(s=>(!f.prov||s.prov===f.prov)&&(!f.sector||s.sector===f.sector)&&(!f.stage||s.stage===f.stage)&&(!f.ask||(s.asks||[]).includes(f.ask))&&(!f.has||(f.has==='demo'?demos(s).length:f.has==='hiring'?lines(s.roles).length:f.has==='web'?url(s.website):s.raising))&&
+  return [...S.startups].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).filter(s=>(!f.prov||s.prov===f.prov)&&(!f.sector||s.sector===f.sector)&&(!f.stage||s.stage===f.stage)&&(!f.ask||(s.asks||[]).includes(f.ask))&&(!f.has||(f.has==='demo'?demos(s).length:f.has==='hiring'?lines(s.roles).length:f.has==='web'?url(s.website):f.has==='verified'?s.verified:s.raising))&&
     (!q||[s.name,s.tagline,s.what,s.city,s.sector,s.offers,lines(s.roles).join(' ')].join(' ').toLowerCase().includes(q)));
 }
 function card(s){
@@ -258,12 +267,12 @@ function card(s){
     <div class="card-top">${mono(s,'sector')}<div><h3>${esc(s.name)}</h3>
     <p class="loc">${esc([s.city,s.prov].filter(Boolean).join(', '))} · ${esc(s.sector||'')}</p></div></div>
     <p class="tagline">${esc(s.tagline)}</p>
-    <div class="chips"><span class="chip">${esc(s.stage||'')}</span>${s.raising?`<span class="chip raise">Raising ${esc(money(s.amount))} ${esc(s.round||'')}</span>`:''}${demos(s).length?'<span class="chip">▶ Demo</span>':''}${lines(s.roles).length?'<span class="chip">Hiring</span>':''}${s.sample?'<span class="chip ex">Example</span>':''}${s.id===S.uid?'<span class="chip you">Yours</span>':''}</div>
+    <div class="chips"><span class="chip">${esc(s.stage||'')}</span>${s.raising?`<span class="chip raise">Raising ${esc(money(s.amount))} ${esc(s.round||'')}</span>`:''}${s.verified?'<span class="chip you">✓ Verified</span>':''}${demos(s).length?'<span class="chip">▶ Demo</span>':''}${lines(s.roles).length?'<span class="chip">Hiring</span>':''}${s.sample?'<span class="chip ex">Example</span>':''}${s.id===S.uid?'<span class="chip you">Yours</span>':''}</div>
     ${(s.asks||[]).length?`<p class="asks">Looking for ${esc(s.asks.join(', '))}</p>`:''}</article>`;
 }
 function stateBox(){
   if(S.status==='loading')return '<div class="empty">Loading the directory…</div>';
-  if(S.status==='nodb')return '<div class="empty">The directory could not load here. Open this page while signed in to Claude.</div>';
+  if(S.status==='nodb')return '<div class="empty">The directory could not load. Check your connection and try again.</div>';
   if(S.status==='slow')return '<div class="empty">The directory is taking a while to answer. It will appear here when it does.</div>';
   return '';
 }
@@ -271,7 +280,7 @@ const fsel=(id,inner,val)=>`<select id="${id}" class="${val?'on':''}" aria-label
 const views={
   startups(){return `<div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.500-3.500"/></svg>
       <input type="search" id="q" placeholder="Search name, idea or city" aria-label="Search startups" value="${esc(S.f.q)}"></div>
-    <div class="chiprow">${fsel('f-prov',provOpts(S.f.prov,'Province'),S.f.prov)}${fsel('f-sector',opts(SECTORS,S.f.sector,'Sector'),S.f.sector)}${fsel('f-stage',opts(STAGES,S.f.stage,'Stage'),S.f.stage)}${fsel('f-ask',opts(ASKS,S.f.ask,'Looking for'),S.f.ask)}${fsel('f-has',opts([['demo','Has a demo'],['hiring','Hiring'],['web','Has a website'],['raising','Raising']],S.f.has,'More'),S.f.has)}</div>
+    <div class="chiprow">${fsel('f-prov',provOpts(S.f.prov,'Province'),S.f.prov)}${fsel('f-sector',opts(SECTORS,S.f.sector,'Sector'),S.f.sector)}${fsel('f-stage',opts(STAGES,S.f.stage,'Stage'),S.f.stage)}${fsel('f-ask',opts(ASKS,S.f.ask,'Looking for'),S.f.ask)}${fsel('f-has',opts([['demo','Has a demo'],['hiring','Hiring'],['web','Has a website'],['verified','Verified'],['raising','Raising']],S.f.has,'More'),S.f.has)}</div>
     <div id="results"></div><div id="fab"></div>`},
   raising(){return `<div id="results"></div>`},
   investors(){
@@ -282,8 +291,9 @@ const views={
       <p class="tagline">${esc(v.thesis)}</p>
       <div class="chips"><span class="chip raise">${esc(v.cheque||'')}</span>${(v.stages||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}${v.sample?'<span class="chip ex">Example</span>':''}</div></article>`).join('')}</div>`},
   'my-profile'(){
+    if(!S.uid)return authCard();
     const lock=locked();
-    const seg=`<div class="seg" role="group" aria-label="Profile type"><button type="button" data-role="founder" aria-pressed="${S.role==='founder'}">I run a startup</button><button type="button" data-role="investor" aria-pressed="${S.role==='investor'}">I invest</button></div>`;
+    const seg=accountBar()+`<div class="seg" role="group" aria-label="Profile type"><button type="button" data-role="founder" aria-pressed="${S.role==='founder'}">I run a startup</button><button type="button" data-role="investor" aria-pressed="${S.role==='investor'}">I invest</button></div>`;
     const warn=lock?`<p class="note">${S.status==='loading'?'Still loading. The form unlocks in a moment.':'You can look around, but saving is off for your account on this prototype.'}</p>`:'';
     const dis=lock?' disabled':'';
     if(S.role==='investor'){const v=myInv()||{};
@@ -304,6 +314,7 @@ const views={
       <label class="f">Startup name<input type="text" id="s-name" name="name" required maxlength="80" value="${esc(s.name)}"${dis}></label>
       <label class="f">Founder name<input type="text" id="s-founder" name="founder" maxlength="80" value="${esc(s.founder)}"${dis}></label></div>
       <label class="f">One-line pitch<input type="text" id="s-tag" name="tagline" required maxlength="140" value="${esc(s.tagline)}"${dis}></label>
+      <div class="logorow"><span id="logoPrev">${mono({name:s.name||'?',logo:s.logo,sector:s.sector},'sector')}</span><label class="f" style="flex:1;min-width:0">Logo <span class="h">a square PNG or JPG works best</span><input type="file" id="s-logo" accept="image/png,image/jpeg,image/webp"${dis}></label>${s.logo?`<button type="button" class="linkbtn" data-act="clear-logo"${dis}>Remove</button>`:''}</div>
       <div class="row"><label class="f">City<input type="text" id="s-city" name="city" maxlength="60" value="${esc(s.city)}"${dis}></label>
       <label class="f">Province or territory<select id="s-prov" name="prov"${dis}>${provOpts(s.prov||'ON')}</select></label>
       <label class="f">Sector<select id="s-sector" name="sector"${dis}>${opts(SECTORS,s.sector||'AI & software')}</select></label></div>
@@ -337,21 +348,22 @@ const views={
       <p class="fine">${lines((s.updates||[]).map(u=>u.text)).length} posted so far.</p></div></div>`:''}`},
   connections(){
     const box=stateBox();if(box)return box;
-    const rec=received(),sent=sentList();
-    const who=id=>{const s=S.startups.find(x=>x.id===id),v=S.investors.find(x=>x.id===id);return s?{n:s.name,o:'s:'+id}:v?{n:v.name,o:'i:'+id}:{n:'A member without a profile yet',o:''}};
-    const row=(w,e,dir)=>`<div class="item"><div class="meta">${dir} · ${new Date(e.at).toLocaleDateString('en-CA')}</div>${w.o?`<button class="linkbtn" data-open="${esc(w.o)}">${esc(w.n)}</button>`:`<b>${esc(w.n)}</b>`}<p class="msg">${esc(e.msg)}</p></div>`;
-    return `<div class="sec" style="margin-top:0"><h2>Received</h2>${rec.length?`<div class="group">${rec.map(r=>row(who(r.from),r,'From')).join('')}</div>`:'<div class="empty">No intro requests yet. Publish your profile so people can find you.</div>'}</div>
-      <div class="sec"><h2>Sent</h2>${sent.length?`<div class="group">${sent.map(e=>row(who(e.to),e,'To')).join('')}</div>`:'<div class="empty">Open any startup or investor and ask for an intro.</div>'}</div>`}
+    if(!S.uid)return `<div class="empty">${S.demo?'Intro requests switch on once sign-up is live.':'Sign in to see your intro requests.<div style="margin-top:14px"><a class="btn" href="#my-profile">Sign in</a></div>'}</div>`;
+    const who=(id,fb)=>{const s=S.startups.find(x=>x.id===id),v=S.investors.find(x=>x.id===id);return s?{n:s.name,o:'s:'+id}:v?{n:v.name,o:'i:'+id}:{n:fb||'A member without a profile yet',o:''}};
+    const row=(w,e,dir)=>`<div class="item"><div class="meta">${dir} · ${new Date(e.at).toLocaleDateString('en-CA')}</div>${w.o?`<button class="linkbtn" data-open="${esc(w.o)}">${esc(w.n)}</button>`:`<b>${esc(w.n)}</b>`}<p class="msg">${esc(e.msg)}</p>
+      ${dir==='From'&&e.replyTo?`<p class="fine" style="margin-top:6px">Reply to <a href="mailto:${esc(e.replyTo)}" style="color:var(--tint)">${esc(e.replyTo)}</a></p>`:''}
+      <button class="linkbtn" style="font-size:.8rem;color:var(--muted);margin-top:6px" data-act="del-intro" data-id="${esc(e.id)}">Delete</button></div>`;
+    return `<div class="sec" style="margin-top:0"><h2>Received</h2>${S.recv.length?`<div class="group">${S.recv.map(e=>row(who(e.from,e.fromName),e,'From')).join('')}</div>`:'<div class="empty">No intro requests yet. Publish your profile so people can find you.</div>'}</div>
+      <div class="sec"><h2>Sent</h2>${S.sent.length?`<div class="group">${S.sent.map(e=>row(who(e.to),e,'To')).join('')}</div>`:'<div class="empty">Open any startup or investor and ask for an intro.</div>'}</div>`}
 };
-function received(){if(!S.uid)return[];const out=[];for(const d of S.intros){if(d.id===S.uid)continue;for(const e of Object.values(d.sent||{}))if(e&&e.to===S.uid)out.push({...e,from:d.id})}return out.sort((a,b)=>b.at-a.at)}
-function sentList(){const d=S.intros.find(x=>x.id===S.uid);return d?Object.values(d.sent||{}).sort((a,b)=>b.at-a.at):[]}
+const received=()=>S.recv,sentList=()=>S.sent;
 
 function renderResults(){
   const el=$('#results');if(!el)return;
   const box=stateBox();if(box){el.innerHTML=box;return}
   if(S.route==='startups'){const list=filtered();
     el.innerHTML=`<p class="resultline">${list.length} of ${S.startups.length} startups</p>`+(list.length?`<div class="grid">${list.map(card).join('')}</div>`:`<div class="empty">${S.startups.length?'No startups match these filters.':'No startups yet. Be the first under Profile.'}</div>`);
-    const fab=$('#fab');if(fab)fab.innerHTML=(!mine()&&!locked())?`<a class="fab" href="#my-profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add my startup</a>`:'';
+    const fab=$('#fab');if(fab)fab.innerHTML=(!mine()&&!S.demo)?`<a class="fab" href="#my-profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add my startup</a>`:'';
   }else if(S.route==='raising'){
     const all=S.startups.filter(s=>s.raising).sort((a,b)=>(b.amount||0)-(a.amount||0));
     const list=S.watchOnly?all.filter(s=>S.watch.has(s.id)):all;
@@ -380,18 +392,23 @@ function openSheet(key){
   const sec=(h,v)=>v?`<h4>${h}</h4><div class="body">${esc(v)}</div>`:'';
   const already=sentList().some(e=>e.to===id&&e.kind===kind);
   const body=kind==='s'?`<p class="loc" style="margin-top:10px">${esc([d.city,PROV[d.prov]].filter(Boolean).join(', '))} · ${esc(d.sector||'')} · Founded ${esc(d.year||'')} · Team of ${esc(d.team||1)}</p>
-      <div class="chips" style="margin-top:10px"><span class="chip">${esc(d.stage||'')}</span>${d.raising?`<span class="chip raise">Raising ${esc(money(d.amount))} ${esc(d.round||'')}</span>`:''}${d.sample?'<span class="chip ex">Example</span>':''}</div>
+      <div class="chips" style="margin-top:10px"><span class="chip">${esc(d.stage||'')}</span>${d.verified?'<span class="chip you">✓ Verified</span>':''}${d.raising?`<span class="chip raise">Raising ${esc(money(d.amount))} ${esc(d.round||'')}</span>`:''}${d.sample?'<span class="chip ex">Example</span>':''}</div>
       <p class="tagline" style="margin-top:14px;font-size:1.05rem">${esc(d.tagline)}</p>
       ${sec('What we are doing',d.what)}${sec('Plan for the next 12 months',d.plan)}${links(d)}${demoList(d)}${sec('Traction',d.traction)}${sec('Looking for',(d.asks||[]).join(', '))}${sec('Can help others with',d.offers)}${sec('Team',[d.founder&&!lines(d.team_list).length?d.founder:'',...lines(d.team_list)].filter(Boolean).join('\n'))}${sec('Open roles',lines(d.roles).join('\n'))}${updList(d)}${sec('Reach us',d.contact)}`
     :`<p class="loc" style="margin-top:10px">${esc(d.type||'')} · ${esc(PROV[d.prov]||'')}</p><div class="chips" style="margin-top:10px"><span class="chip raise">${esc(d.cheque||'')}</span>${(d.stages||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}${d.sample?'<span class="chip ex">Example</span>':''}</div>
       ${sec('What we look for',d.thesis)}${sec('Sectors',d.sectors)}${sec('Reach us',d.contact)}`;
   const own=id===S.uid;
-  const acts=own?`<div style="margin-top:20px"><a class="btn wide" href="#my-profile" data-act="close">Edit my profile</a></div>`
-    :`<div class="introbox"><label class="f" for="introMsg">${already?'You already asked for an intro. Sending again replaces your note.':'Ask for an intro'}</label>
-      <textarea id="introMsg" maxlength="500" placeholder="Say who you are and how you can help or what you need."${locked()?' disabled':''}></textarea>
-      <button class="btn wide" data-act="intro" data-key="${esc(key)}"${locked()?' disabled':''}>Send intro request</button>
-      ${kind==='s'?`<button class="btn ghost wide" data-watch="${esc(id)}" data-label="1" aria-pressed="${S.watch.has(id)}">${S.watch.has(id)?'★ On watchlist':'☆ Add to watchlist'}</button>`:''}
-      <p class="fine">${d.sample?'This is an example profile, so nobody will reply. ':''}In this prototype intro notes are not private. Other members could read them.</p></div>`;
+  const admin=S.admin&&kind==='s'?`<div class="links"><button class="btn ghost sm" data-act="verify" data-id="${esc(id)}">${d.verified?'Remove verified badge':'Mark as verified'}</button><button class="btn danger sm" data-act="admin-del" data-id="${esc(id)}">Remove listing</button></div>`:'';
+  let acts;
+  if(own)acts=`<div style="margin-top:20px"><a class="btn wide" href="#my-profile" data-act="close">Edit my profile</a></div>`;
+  else if(S.demo)acts=`<div class="introbox"><p class="fine">Demo mode. Intro requests and the watchlist switch on once sign-up is live.</p></div>`;
+  else if(!S.uid)acts=`<div class="introbox"><a class="btn wide" href="#my-profile" data-act="close">Sign in to ask for an intro</a><p class="fine">Free for founders and investors.</p></div>`;
+  else acts=`<div class="introbox"><label class="f" for="introMsg">${already?'You already asked for an intro. Sending again replaces your note.':'Ask for an intro'}</label>
+      <textarea id="introMsg" maxlength="500" placeholder="Say who you are and how you can help or what you need."></textarea>
+      <button class="btn wide" data-act="intro" data-key="${esc(key)}">Send intro request</button>
+      ${kind==='s'?`<button class="btn ghost wide" data-watch="${esc(id)}" aria-pressed="${S.watch.has(id)}">${S.watch.has(id)?'★ On watchlist':'☆ Add to watchlist'}</button>`:''}
+      <p class="fine">${d.sample?'This is an example profile, so nobody will reply. ':''}Only you and ${esc(d.name)} can read this note. Your email (${esc(S.me.email)}) is shared with them so they can reply.</p></div>`;
+  acts+=admin;
   $('#modal').innerHTML=`<div class="overlay" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(d.name)}"><div class="grab"></div><div class="sheet-head">${mono(d,kind==='s'?'sector':'type')}<h2>${esc(d.name)}</h2><button class="x" data-act="close" aria-label="Close">✕</button></div>${body}${acts}</div></div>`;
   $('#modal .x').focus();
 }
@@ -399,44 +416,80 @@ const ext='target="_blank" rel="noopener noreferrer"';
 function links(d){const w=url(d.website),l=url(d.linkedin);if(!w&&!l)return'';
   return `<div class="links">${w?`<a class="btn sm" href="${esc(w)}" ${ext}>Visit ${esc(host(w))} ↗</a>`:''}${l?`<a class="btn ghost sm" href="${esc(l)}" ${ext}>LinkedIn ↗</a>`:''}</div>`}
 function demoList(d){const ds=demos(d);if(!ds.length)return'';
-  return `<h4>Demos</h4><div class="demos">${ds.map(x=>`<a class="demo" href="${esc(x.u)}" ${ext}><span class="play" aria-hidden="true">▶</span><span><b>${esc(x.t)}</b><span class="loc">${esc(host(x.u))}</span></span><span aria-hidden="true">↗</span></a>`).join('')}</div>`}
+  return `<h4>Demos</h4><div class="demos">${ds.map(x=>(yt(x.u)?`<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${yt(x.u)}" title="${esc(x.t)}" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`:'')+`<a class="demo" href="${esc(x.u)}" ${ext}><span class="play" aria-hidden="true">▶</span><span><b>${esc(x.t)}</b><span class="loc">${esc(host(x.u))}</span></span><span aria-hidden="true">↗</span></a>`).join('')}</div>`}
 function updList(d){const us=(Array.isArray(d.updates)?d.updates:[]).filter(u=>u&&u.text).slice(0,6);if(!us.length)return'';
   return `<h4>Progress updates</h4><div class="tl">${us.map(u=>`<div class="tli"><span class="loc">${esc(new Date(u.at).toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'}))}</span><div class="body">${esc(u.text)}</div></div>`).join('')}</div>`}
 const closeSheet=()=>{$('#modal').innerHTML=''};
 
 /* ---------- writes ---------- */
-async function guard(fn,ok){try{await fn();if(ok)toast(ok)}catch(e){toast(e&&e.code==='invalid_argument'?'Saving is off for your account on this prototype.':'That did not save. Try again in a moment.');if(e&&e.code==='invalid_argument'){S.canWrite=false}}}
+const MSG={'permission-denied':'You do not have permission to do that.','auth/invalid-credential':'Wrong email or password.','auth/wrong-password':'Wrong email or password.','auth/user-not-found':'No account with that email.','auth/email-already-in-use':'That email already has an account. Sign in instead.','auth/weak-password':'Use a password with at least 6 characters.','auth/invalid-email':'That email address does not look right.','auth/missing-email':'Type your email first.','auth/popup-closed-by-user':'Sign-in was cancelled.','auth/popup-blocked':'Your browser blocked the sign-in window. Allow pop-ups and try again.','auth/too-many-requests':'Too many tries. Wait a few minutes.','auth/unauthorized-domain':'This web address is not approved in Firebase yet. See step 5 in SETUP.md.','auth/operation-not-allowed':'This sign-in method is not switched on in Firebase yet. See step 3 in SETUP.md.'};
+async function guard(fn,ok){try{await fn();if(ok)toast(ok);return true}catch(e){toast(MSG[e&&e.code]||'That did not work. Try again in a moment.');return false}}
+function needLogin(){if(S.demo){toast('Demo mode. Sign-up is not switched on yet.');return true}
+  if(!S.uid){toast('Sign in first.');closeSheet();location.hash='my-profile';return true}return false}
+const sdoc=(c,id)=>F.doc(F.db,c,id);
+
 function saveStartup(form){const fd=new FormData(form),t=k=>String(fd.get(k)||'').trim();
   const d={name:t('name'),founder:t('founder'),tagline:t('tagline'),city:t('city'),prov:t('prov'),sector:t('sector'),stage:t('stage'),team:Number(fd.get('team'))||1,year:Number(fd.get('year'))||null,
     what:t('what'),plan:t('plan'),traction:t('traction'),asks:fd.getAll('asks'),offers:t('offers'),raising:fd.get('raising')==='on',amount:Number(fd.get('amount'))||0,round:t('round'),contact:t('contact'),updatedAt:Date.now(),
     website:url(t('website')),linkedin:url(t('linkedin')),demos:[0,1,2].map(i=>({t:t('dl'+i)||'Demo',u:url(t('du'+i))})).filter(x=>x.u),
-    team_list:t('team_list').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,12),roles:t('roles').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,12),updates:(mine()||{}).updates||[]};
+    team_list:t('team_list').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,12),roles:t('roles').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,12)};
+  if(S.logoDraft!==undefined)d.logo=S.logoDraft;
   for(const k of['website','linkedin'])if(t(k)&&!d[k]){toast('Check the '+k+' link. It does not look like a web address.');return}
   if(d.raising&&!d.amount){toast('Add the amount you are raising.');return}
-  guard(async()=>{await S.db.doc('startups/'+S.uid).set(d);S.dirty=false},'Your startup is live in the directory.')}
+  guard(async()=>{await F.setDoc(sdoc('startups',S.uid),d,{merge:true});S.dirty=false;S.logoDraft=undefined;render()},'Your startup is live in the directory.')}
 function postUpdate(){const el=$('#updText'),text=el.value.trim(),m=mine();if(!m)return;if(!text){toast('Write your update first.');return}
-  guard(async()=>{await S.db.doc('startups/'+S.uid).update({updates:[{at:Date.now(),text},...(m.updates||[])].slice(0,20),updatedAt:Date.now()});el.value=''},'Update posted to your profile.')}
+  guard(async()=>{await F.updateDoc(sdoc('startups',S.uid),{updates:[{at:Date.now(),text},...(m.updates||[])].slice(0,20),updatedAt:Date.now()});el.value=''},'Update posted to your profile.')}
 function saveInvestor(form){const fd=new FormData(form),t=k=>String(fd.get(k)||'').trim();
   const d={name:t('name'),type:t('type'),prov:t('prov'),cheque:t('cheque'),sectors:t('sectors'),stages:fd.getAll('stages'),thesis:t('thesis'),contact:t('contact'),updatedAt:Date.now()};
-  guard(async()=>{await S.db.doc('investors/'+S.uid).set(d);S.dirty=false},'Your investor profile is live.')}
-function sendIntro(key,msg){const kind=key[0],id=key.slice(2);if(!msg.trim()){toast('Write a short note first.');return}
-  guard(async()=>{const ref=S.db.doc('intros/'+S.uid),entry={to:id,kind,msg:msg.trim(),at:Date.now()},patch={sent:{[kind+'_'+id]:entry}};
-    const snap=await ref.get();if(snap.exists)await ref.update(patch);else await ref.set(patch);closeSheet()},'Intro request sent.')}
-function toggleWatch(id){if(!S.db||!S.uid){toast('Watchlist needs you to be signed in.');return}
+  guard(async()=>{await F.setDoc(sdoc('investors',S.uid),d,{merge:true});S.dirty=false;render()},'Your investor profile is live.')}
+function sendIntro(key,msg){if(needLogin())return;const kind=key[0],id=key.slice(2);if(!msg.trim()){toast('Write a short note first.');return}
+  const me=mine()||myInv()||{};
+  guard(async()=>{await F.setDoc(sdoc('intros',S.uid+'_'+kind+'_'+id),{from:S.uid,to:id,kind,msg:msg.trim().slice(0,500),at:Date.now(),fromName:String(me.name||S.me.name||'A member').slice(0,80),replyTo:S.me.email});closeSheet()},'Intro request sent.')}
+function toggleWatch(id){if(needLogin())return;
   const next=new Set(S.watch);next.has(id)?next.delete(id):next.add(id);S.watch=next;refresh();
   document.querySelectorAll('#modal [data-watch]').forEach(b=>{b.setAttribute('aria-pressed',next.has(id));b.textContent=next.has(id)?'★ On watchlist':'☆ Add to watchlist'});
-  guard(()=>S.db.doc('data/users/'+S.uid+'/watchlist').set({ids:[...next]}))}
+  guard(()=>F.setDoc(sdoc('users',S.uid),{watch:[...next]},{merge:true}))}
+function readLogo(file){return new Promise((res,rej)=>{if(!file||!/^image\/(png|jpeg|webp)$/.test(file.type))return rej();
+  const img=new Image();img.onload=()=>{const n=160,c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d'),s=Math.min(img.width,img.height);
+    x.fillStyle='#fff';x.fillRect(0,0,n,n);x.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,n,n);URL.revokeObjectURL(img.src);res(c.toDataURL('image/jpeg',.85))};
+  img.onerror=rej;img.src=URL.createObjectURL(file)})}
+async function seedExamples(){const seed=await (await fetch('seed.json')).json();
+  await guard(async()=>{for(const[k,v]of Object.entries(seed)){const[c,id]=k.split('/');await F.setDoc(sdoc(c,id),v)}},'Example companies loaded.')}
+
+/* ---------- sign-in ---------- */
+function authCard(){
+  if(S.demo)return `<div class="empty"><b style="color:var(--ink)">Demo mode</b><p style="margin-top:6px">You are browsing example companies. Sign-up switches on once the Firebase keys are added. The steps are in SETUP.md in the repo.</p></div>`;
+  if(!S.authReady)return '<div class="empty">Checking your sign-in…</div>';
+  return `<form class="profile" id="authForm"><div class="fgroup">
+    <button type="button" class="btn ghost wide" data-act="google">Continue with Google</button>
+    <p class="fine" style="text-align:center">or use your email</p>
+    <label class="f">Email<input type="email" id="a-email" name="email" required autocomplete="email"></label>
+    <label class="f">Password<input type="password" id="a-pass" name="password" required minlength="6" autocomplete="current-password"></label>
+    <button class="btn wide" name="mode" value="in">Sign in</button>
+    <button class="btn ghost wide" name="mode" value="up">Create a free account</button>
+    <button type="button" class="linkbtn" data-act="reset" style="text-align:center">Forgot your password?</button>
+    <p class="fine">An account lets you publish your startup or investor profile, save a watchlist and send intro requests.</p></div></form>`}
+function accountBar(){return `<div class="switchrow"><span style="min-width:0;overflow-wrap:anywhere;font-weight:400">Signed in as <b>${esc(S.me.email||S.me.name)}</b></span><button type="button" class="btn ghost sm" data-act="signout">Sign out</button></div>
+  ${S.admin?`<div class="switchrow"><span>Admin tools</span><button type="button" class="btn ghost sm" data-act="seed">Load example companies</button></div>`:''}`}
 
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
   const w=e.target.closest('[data-watch]');if(w){toggleWatch(w.dataset.watch);return}
   const act=e.target.closest('[data-act]');
-  if(act){const a=act.dataset.act;
+  if(act){const a=act.dataset.act,id=act.dataset.id;
     if(a==='close'){if(act.classList.contains('overlay')&&e.target!==act)return;closeSheet();return}
     if(a==='intro'){sendIntro(act.dataset.key,$('#introMsg').value);return}
     if(a==='post-upd'){postUpdate();return}
-    if(a==='del-su'){guard(async()=>{await S.db.doc('startups/'+S.uid).delete();S.dirty=false},'Your startup was removed.');return}
-    if(a==='del-inv'){guard(async()=>{await S.db.doc('investors/'+S.uid).delete();S.dirty=false},'Your investor profile was removed.');return}}
+    if(a==='del-su'){guard(async()=>{await F.deleteDoc(sdoc('startups',S.uid));S.dirty=false;render()},'Your startup was removed.');return}
+    if(a==='del-inv'){guard(async()=>{await F.deleteDoc(sdoc('investors',S.uid));S.dirty=false;render()},'Your investor profile was removed.');return}
+    if(a==='del-intro'){guard(()=>F.deleteDoc(sdoc('intros',id)),'Intro request deleted.');return}
+    if(a==='google'){guard(()=>F.signInWithPopup(F.auth,new F.GoogleAuthProvider()));return}
+    if(a==='signout'){guard(()=>F.signOut(F.auth),'Signed out.');return}
+    if(a==='reset'){const em=$('#a-email').value.trim();if(!em){toast('Type your email first.');return}guard(()=>F.sendPasswordResetEmail(F.auth,em),'Password reset email sent.');return}
+    if(a==='seed'){seedExamples();return}
+    if(a==='verify'){const s=S.startups.find(x=>x.id===id);guard(async()=>{await F.updateDoc(sdoc('startups',id),{verified:!(s&&s.verified)});closeSheet()},'Verified badge updated.');return}
+    if(a==='admin-del'){guard(async()=>{await F.deleteDoc(sdoc('startups',id));closeSheet()},'Listing removed.');return}
+    if(a==='clear-logo'){S.logoDraft='';S.dirty=true;$('#logoPrev').innerHTML=mono({name:(mine()||{}).name||'?'},'sector');return}}
   const role=e.target.closest('[data-role]');if(role){S.role=role.dataset.role;S.dirty=false;render();return}
   const o=e.target.closest('[data-open]');if(o)openSheet(o.dataset.open);
 });
@@ -451,26 +504,46 @@ document.addEventListener('input',e=>{
   else if(id==='watchOnly'){S.watchOnly=e.target.checked;renderResults()}
   else if(e.target.closest('form.profile')||id==='updText')S.dirty=true;
 });
-document.addEventListener('submit',e=>{e.preventDefault();if(locked())return;if(e.target.id==='suForm')saveStartup(e.target);if(e.target.id==='invForm')saveInvestor(e.target)});
-function route(){const h=location.hash.slice(1);S.route=ROUTES.includes(h)?h:'startups';S.dirty=false;render();try{window.scrollTo(0,0)}catch(_){}}
+document.addEventListener('change',e=>{
+  if(e.target.id!=='s-logo')return;
+  readLogo(e.target.files[0]).then(d=>{S.logoDraft=d;S.dirty=true;$('#logoPrev').innerHTML=mono({name:'?',logo:d},'sector')}).catch(()=>toast('Pick a PNG, JPG or WebP image.'));
+});
+document.addEventListener('submit',e=>{e.preventDefault();
+  if(e.target.id==='authForm'){const fd=new FormData(e.target),em=String(fd.get('email')).trim(),pw=String(fd.get('password')),up=e.submitter&&e.submitter.value==='up';
+    guard(()=>up?F.createUserWithEmailAndPassword(F.auth,em,pw):F.signInWithEmailAndPassword(F.auth,em,pw),up?'Account created. Welcome.':'Signed in.');return}
+  if(locked())return;if(e.target.id==='suForm')saveStartup(e.target);if(e.target.id==='invForm')saveInvestor(e.target)});
+function route(){const h=location.hash.slice(1);S.route=ROUTES.includes(h)?h:'startups';S.dirty=false;S.logoDraft=undefined;render();try{window.scrollTo(0,0)}catch(_){}}
 window.addEventListener('hashchange',route);
 
 /* ---------- data ---------- */
+const FB='https://www.gstatic.com/firebasejs/12.4.0/';
+let F=null,unsubs=[];
+async function demo(){ /* no Firebase keys yet: show the bundled examples, read-only */
+  S.demo=true;$('#mode').hidden=false;
+  try{const seed=await (await fetch('seed.json')).json();for(const[k,v]of Object.entries(seed)){const[c,id]=k.split('/');if(S[c])S[c].push({id,...v})}S.status='ready'}catch(_){S.status='nodb'}
+  render()}
+function onUser(u){
+  unsubs.forEach(f=>f());unsubs=[];S.authReady=true;
+  S.uid=u?u.uid:null;S.me=u?{email:u.email||'',name:u.displayName||''}:null;S.sent=[];S.recv=[];S.watch=new Set();S.admin=false;
+  if(u){const byAt=(a,b)=>b.at-a.at,rows=s=>s.docs.map(d=>({id:d.id,...d.data()})).sort(byAt),q=f=>F.query(F.collection(F.db,'intros'),F.where(f,'==',u.uid));
+    unsubs.push(F.onSnapshot(q('from'),s=>{S.sent=rows(s);refresh()},()=>{}));
+    unsubs.push(F.onSnapshot(q('to'),s=>{S.recv=rows(s);refresh()},()=>{}));
+    unsubs.push(F.onSnapshot(sdoc('users',u.uid),s=>{const d=s.exists()?s.data():null;S.watch=new Set((d&&d.watch)||[]);refresh()},()=>{}));
+    F.getDoc(sdoc('admins',u.uid)).then(s=>{S.admin=s.exists();refresh()}).catch(()=>{})}
+  S.dirty=false;render()}
 async function start(){
   route();
-  const use=n=>(window.claude&&window.claude.use)?window.claude.use(n).catch(()=>null):Promise.resolve(null);
-  const[db,user]=await Promise.all([use('db'),use('user')]);
-  S.db=db;S.user=user;
-  if(!db){ /* outside Claude: show the bundled examples, read-only */
-    try{const seed=await (await fetch('seed.json')).json();for(const[k,v]of Object.entries(seed)){const[c,id]=k.split('/');if(S[c])S[c].push({id,...v})}S.status='ready'}catch(_){S.status='nodb'}
-    render();return}
-  if(user){try{S.uid=await user.id();const c=await user.can('data.write');S.canWrite=c!==false}catch(_){}}
+  const cfg=window.FIREBASE_CONFIG;
+  if(!cfg||!cfg.apiKey)return demo();
+  try{const[a,au,fs]=await Promise.all([import(FB+'firebase-app.js'),import(FB+'firebase-auth.js'),import(FB+'firebase-firestore.js')]);
+    const app=a.initializeApp(cfg);F={...fs,...au,db:fs.getFirestore(app),auth:au.getAuth(app)}}
+  catch(_){S.status='nodb';render();return}
+  S.live=true;
   const slow=setTimeout(()=>{if(S.status==='loading'){S.status='slow';refresh()}},10000);
   const done=()=>{if(S.status!=='ready'){clearTimeout(slow);S.status='ready'}};
-  const sub=(path,key)=>db.collection(path).onSnapshot(snap=>{S[key]=snap.docs.map(d=>({id:d.id,...d.data()}));if(!snap.metadata||!snap.metadata.fromCache||snap.docs.length)done();refresh()},()=>{done();refresh()});
-  sub('startups','startups');sub('investors','investors');sub('intros','intros');
-  if(S.uid)db.doc('data/users/'+S.uid+'/watchlist').onSnapshot(s=>{const d=s.exists?s.data():null;S.watch=new Set((d&&d.ids)||[]);refresh()},()=>{});
-  render();
+  const sub=name=>F.onSnapshot(F.collection(F.db,name),snap=>{S[name]=snap.docs.map(d=>({id:d.id,...d.data()}));done();refresh()},()=>{done();refresh()});
+  sub('startups');sub('investors');
+  F.onAuthStateChanged(F.auth,onUser);
 }
 start();
 </script>

@@ -1,19 +1,31 @@
 # LaunchNorth (working name)
 
-A prototype hub for Canadian startups: founders post what they are building and their plan, find other founders who can help, and investors see who is raising.
+A hub for Canadian startups. Founders post what they are building and their plan, find other founders who can help, and investors see who is raising.
 
-## What is in the prototype
-- Startup directory with search and filters (province, sector, stage, asks, demo, hiring)
-- Company profiles: pitch, 12-month plan, traction, website, demo links, team, open roles, progress updates
-- "Raising now" view with a watchlist
-- Investor directory
-- Intro requests and an inbox
+## Features
+- **Accounts:** sign up with email and password or with Google
+- **Startup directory:** search and filter by province, sector, stage, asks, demo, hiring, verified
+- **Company profiles:** logo, pitch, 12-month plan, traction, website, LinkedIn, demo links (YouTube links play inside the app), team, open roles, progress updates
+- **Raising now:** who is fundraising and how much, with a private watchlist
+- **Investor directory:** cheque size, stages, sectors and thesis
+- **Intro requests:** private between sender and recipient, with an inbox
+- **Admin tools:** mark startups as verified, remove listings, load example companies
 
-## Files
-- `index.html` — the whole app (HTML, CSS and JavaScript in one file)
+## How it is built
+- `index.html` — the whole app: HTML, CSS and JavaScript in one file, no build step
+- `firebase-config.js` — your Firebase keys (empty = demo mode)
+- `firestore.rules` — database security rules: who can read and write what
 - `seed.json` — made-up example startups and investors
+- `SETUP.md` — step-by-step guide to going live
+
+Sign-in and the database are provided by Firebase (Authentication and Cloud Firestore). The site itself is static files, so it can be hosted free on GitHub Pages.
 
 ## Status
-This is a design and flow prototype. It was built to run as a Claude artifact, which supplies the login and database. Opened anywhere else (for example GitHub Pages) it shows the example companies in read-only mode: saving profiles, intro requests and the watchlist are switched off.
+The code is complete but has not yet been run against a real Firebase project. It was tested in a browser against a stand-in for Firebase, so the screens and flows are checked while the security rules are not. Follow `SETUP.md`, then try sign-up, publishing a profile and sending an intro request before inviting anyone.
 
-To become a public site it needs real sign-in, a hosted database and private messaging.
+## Not built yet
+- Email notifications when someone sends an intro request
+- Chat-style messaging (intro requests are one note each, with reply by email)
+- Email verification and spam controls
+- French language support
+- Paging for very large directories (fine for hundreds of companies)
