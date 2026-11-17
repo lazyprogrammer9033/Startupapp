@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LaunchNorth Startup Hub</title>
+<style>
+/* Layout idea: a native-feeling app. Large title, content on a grouped grey canvas, one green tint for actions, bottom tab bar on phones. */
+:root{
+  --bg:#f2f3f5; --surface:#ffffff; --fill:#eceeef; --ink:#101513; --muted:#69726f; --line:#e2e5e4;
+  --tint:#17694f; --on-tint:#ffffff; --tint-soft:#dff1e9; --red:#d23a2e; --red-soft:#fde7e4; --gold:#8a6710; --gold-soft:#f8edc9;
+  --shadow:0 1px 2px rgba(16,21,19,.05),0 6px 20px rgba(16,21,19,.06);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Roboto","Segoe UI",system-ui,sans-serif;
+  --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Google Sans","Roboto","Segoe UI",system-ui,sans-serif;
+  --r:20px; --tab:64px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a0e0d; --surface:#171c1a; --fill:#222927; --ink:#f1f4f3; --muted:#98a29e; --line:#272e2b;
+    --tint:#5fd0a8; --on-tint:#06241a; --tint-soft:#15332a; --red:#ff8a7f; --red-soft:#3b1d1a; --gold:#e6c766; --gold-soft:#352d13;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a0e0d; --surface:#171c1a; --fill:#222927; --ink:#f1f4f3; --muted:#98a29e; --line:#272e2b;
+  --tint:#5fd0a8; --on-tint:#06241a; --tint-soft:#15332a; --red:#ff8a7f; --red-soft:#3b1d1a; --gold:#e6c766; --gold-soft:#352d13;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;padding-bottom:calc(var(--tab) + env(safe-area-inset-bottom) + 28px)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left)) 0 max(16px,env(safe-area-inset-right))}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.15;text-wrap:balance;letter-spacing:-.02em}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--tint);outline-offset:2px}
+
+/* header */
+header.top{padding:calc(14px + env(safe-area-inset-top)) 0 4px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.95rem;letter-spacing:-.01em}
+.logo{width:28px;height:28px;border-radius:8px;background:var(--red);display:grid;place-items:center;flex:none}
+.logo svg{width:16px;height:16px}
+.brand small{font-weight:500;color:var(--muted);margin-left:auto;font-size:.75rem;background:var(--gold-soft);color:var(--gold);padding:3px 10px;border-radius:99px}
+h1#title{font-size:2.1rem;font-weight:800;margin-top:18px}
+#sub{color:var(--muted);margin-top:4px;max-width:60ch}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.stats div{background:var(--surface);border-radius:16px;padding:10px 8px;text-align:center;font-size:.72rem;color:var(--muted);box-shadow:var(--shadow)}
+.stats b{display:block;font-family:var(--display);font-size:1.35rem;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* tab bar */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:color-mix(in srgb,var(--surface) 86%,transparent);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs .in{display:grid;grid-template-columns:repeat(5,1fr);max-width:560px;margin:0 auto;height:var(--tab)}
+nav.tabs a{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--muted);font-size:.68rem;font-weight:600}
+nav.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs a .pill{display:grid;place-items:center;width:56px;height:30px;border-radius:99px}
+nav.tabs a[aria-current="page"]{color:var(--tint)}
+nav.tabs a[aria-current="page"] .pill{background:var(--tint-soft)}
+.count{position:absolute;top:6px;left:calc(50% + 8px);font-size:.65rem;background:var(--red);color:#fff;border-radius:99px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 5px}
+@media (min-width:820px){
+  body{padding-bottom:40px}
+  nav.tabs{position:sticky;top:0;bottom:auto;border-top:0;border-bottom:1px solid var(--line);margin-top:14px}
+  nav.tabs .in{max-width:1040px;height:54px;grid-template-columns:repeat(5,auto);justify-content:start;gap:6px;padding:0 16px}
+  nav.tabs a{flex-direction:row;gap:6px;font-size:.9rem;padding:0 6px}
+  nav.tabs a .pill{width:36px}
+  .count{position:static}
+}
+
+main{padding:16px 0 0}
+/* search + filter chips */
+.search{position:relative;margin-bottom:10px}
+.search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round}
+.search input{width:100%;height:46px;border:0;border-radius:14px;background:var(--fill);padding:0 14px 0 42px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;padding:2px 16px 12px;margin:0 -16px;scrollbar-width:none}
+.chiprow::-webkit-scrollbar{display:none}
+.chiprow select{flex:none;appearance:none;-webkit-appearance:none;height:36px;border-radius:99px;border:1px solid var(--line);background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%23889390' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center;padding:0 32px 0 14px;font-size:.88rem;font-weight:500;max-width:210px}
+.chiprow select.on{background-color:var(--tint-soft);border-color:transparent;color:var(--tint)}
+.resultline{font-size:.8rem;color:var(--muted);margin:0 4px 10px;font-weight:500}
+
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.card{background:var(--surface);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;box-shadow:var(--shadow)}
+.card:active{transform:scale(.985)}
+.card-top{display:flex;gap:12px;align-items:center}
+.mono{flex:none;width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:1rem;
+  background:color-mix(in srgb,hsl(var(--h,160) 65% 45%) 16%,var(--surface));color:color-mix(in srgb,hsl(var(--h,160) 65% 42%) 72%,var(--ink))}
+.card h3{font-size:1.06rem;overflow-wrap:anywhere}
+.loc{font-size:.8rem;color:var(--muted)}
+.tagline{font-size:.95rem;overflow-wrap:anywhere}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.73rem;font-weight:600;border-radius:99px;padding:3px 10px;background:var(--fill);color:var(--ink)}
+.chip.raise{background:var(--red-soft);color:var(--red)}
+.chip.ex{background:var(--gold-soft);color:var(--gold)}
+.chip.you{background:var(--tint-soft);color:var(--tint)}
+.asks{font-size:.8rem;color:var(--muted);margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
+.empty{background:var(--surface);border-radius:var(--r);padding:28px 20px;color:var(--muted);text-align:center;box-shadow:var(--shadow)}
+
+/* grouped lists */
+.group{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.rowitem{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.rowitem:last-child{border-bottom:0}
+.rowmain{flex:1;min-width:0;background:none;border:0;padding:0;text-align:left;cursor:pointer;display:grid;gap:1px}
+.rowmain b{font-size:1rem;overflow-wrap:anywhere}
+.amt{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.star{flex:none;width:40px;height:40px;border-radius:99px;border:0;background:var(--fill);cursor:pointer;font-size:1.05rem;color:var(--muted)}
+.star[aria-pressed="true"]{background:var(--gold-soft);color:var(--gold)}
+.summary{background:var(--tint);color:var(--on-tint);border-radius:var(--r);padding:16px 18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:end;gap:12px}
+.summary b{font-family:var(--display);font-size:1.9rem;letter-spacing:-.02em;display:block;line-height:1}
+.summary span{font-size:.82rem;opacity:.85}
+.switchrow{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border-radius:16px;padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow);font-weight:500}
+.switch{appearance:none;-webkit-appearance:none;width:50px;height:30px;border-radius:99px;background:var(--fill);position:relative;cursor:pointer;margin:0;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.switch:checked{background:var(--tint)}
+.switch:checked::after{transform:translateX(20px)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;background:var(--tint);color:var(--on-tint);border:0;border-radius:99px;padding:0 22px;font-weight:600;cursor:pointer;text-decoration:none}
+.btn.wide{width:100%}
+.btn.ghost{background:var(--fill);color:var(--ink)}
+.btn.danger{background:transparent;color:var(--red)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:active{transform:scale(.98)}
+.fab{position:fixed;right:16px;bottom:calc(var(--tab) + env(safe-area-inset-bottom) + 14px);z-index:9;background:var(--tint);color:var(--on-tint);border-radius:18px;min-height:54px;padding:0 20px;display:inline-flex;align-items:center;gap:8px;font-weight:600;text-decoration:none;box-shadow:0 6px 18px rgba(16,21,19,.28)}
+.fab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
+@media (min-width:820px){.fab{bottom:24px}}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--fill);border-radius:12px;padding:3px;margin-bottom:16px;max-width:420px}
+.seg button{background:transparent;border:0;height:36px;border-radius:9px;cursor:pointer;font-weight:600;font-size:.9rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+/* forms */
+form.profile{display:grid;gap:8px;max-width:720px}
+.gh{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin:14px 16px 0}
+.fgroup{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 16px;display:grid;gap:14px}
+.row{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+label.f{display:grid;gap:6px;font-size:.82rem;font-weight:600}
+label.f span.h{font-weight:400;color:var(--muted)}
+.fgroup input[type=text],.fgroup input[type=number],.fgroup select,textarea{width:100%;background:var(--fill);border:0;border-radius:12px;padding:12px;min-height:46px}
+textarea{min-height:100px;resize:vertical}
+fieldset{border:0;padding:0;margin:0}
+legend{font-size:.82rem;font-weight:600;padding:0;margin-bottom:8px}
+.checks{display:flex;gap:8px;flex-wrap:wrap}
+.checks label{position:relative;border-radius:99px;padding:8px 14px;font-size:.86rem;font-weight:500;cursor:pointer;background:var(--fill)}
+.checks input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.checks label:has(input:checked){background:var(--tint);color:var(--on-tint)}
+.checks label:has(input:focus-visible){outline:3px solid var(--tint);outline-offset:2px}
+.formfoot{display:grid;gap:6px;margin-top:10px}
+.note{font-size:.85rem;color:var(--gold);background:var(--gold-soft);border-radius:14px;padding:10px 14px;margin-bottom:14px}
+
+/* inbox */
+.sec{margin-top:24px}
+.sec h2{font-size:1.2rem;margin:0 4px 10px}
+.item{padding:14px 16px;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .meta{font-size:.76rem;color:var(--muted);font-weight:500}
+.item p.msg{margin-top:4px;overflow-wrap:anywhere}
+.linkbtn{background:none;border:0;padding:0;color:var(--tint);font-weight:600;cursor:pointer;text-align:left}
+
+/* sheet */
+.overlay{position:fixed;inset:0;background:rgba(6,10,9,.5);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:620px;max-height:92%;overflow-y:auto;border-radius:28px 28px 0 0;padding:10px 20px calc(24px + env(safe-area-inset-bottom))}
+.grab{width:38px;height:5px;border-radius:99px;background:var(--line);margin:0 auto 12px}
+@media (min-width:700px){.overlay{align-items:center}.sheet{border-radius:28px}.grab{visibility:hidden}}
+.sheet-head{display:flex;gap:12px;align-items:center}
+.sheet-head .mono{width:56px;height:56px;border-radius:16px;font-size:1.2rem}
+.sheet h2{font-size:1.45rem;overflow-wrap:anywhere;flex:1}
+.x{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:var(--fill);cursor:pointer;color:var(--muted);font-size:.9rem}
+.sheet h4{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 4px}
+.sheet .body{white-space:pre-wrap;overflow-wrap:anywhere}
+.introbox{margin-top:20px;background:var(--bg);border-radius:18px;padding:14px;display:grid;gap:10px}
+.introbox textarea{background:var(--surface)}
+.fine{font-size:.78rem;color:var(--muted)}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.btn.sm{min-height:40px;padding:0 16px;font-size:.9rem;overflow-wrap:anywhere}
+.demos{display:grid;gap:8px;margin-top:6px}
+.demo{display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:14px;padding:10px 14px;text-decoration:none;color:var(--ink)}
+.demo>span:nth-child(2){flex:1;min-width:0;display:grid;overflow-wrap:anywhere}
+.play{flex:none;width:36px;height:36px;border-radius:50%;background:var(--tint);color:var(--on-tint);display:grid;place-items:center;font-size:.8rem;padding-left:2px}
+.tl{border-left:2px solid var(--line);margin:8px 0 0 6px;padding-left:14px;display:grid;gap:12px}
+.tli{position:relative}
+.tli::before{content:"";position:absolute;left:-20px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--tint)}
+#toast{position:fixed;left:50%;bottom:calc(var(--tab) + env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-size:.9rem;font-weight:500;z-index:30;max-width:92%;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+#toast:empty{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .card,.btn{transition:transform .12s}
+  .sheet{animation:up .28s cubic-bezier(.2,.8,.2,1)}
+  @keyframes up{from{transform:translateY(40px)}to{transform:none}}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 1.5 13.5 14 8 11 2.5 14z" fill="#fff"/></svg></span>LaunchNorth<small>Prototype</small></div>
+  <h1 id="title">Startups</h1>
+  <p id="sub"></p>
+  <div class="stats" id="stats"></div>
+</div></header>
+
+<nav class="tabs" aria-label="Sections"><div class="in" id="tabs">
+  <a href="#startups" data-r="startups"><span class="pill"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg></span>Startups</a>
+  <a href="#raising" data-r="raising"><span class="pill"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span>Raising</a>
+  <a href="#investors" data-r="investors"><span class="pill"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.900 6.500 5.500"/><circle cx="17.500" cy="9" r="2.500"/><path d="M17.500 14.500c2.200.2 3.700 1.600 4.200 4"/></svg></span>Investors</a>
+  <a href="#connections" data-r="connections"><span class="pill"><svg viewBox="0 0 24 24"><path d="M4 5.500h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 3.500v-3.500a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1z"/></svg></span>Inbox<span class="count" id="inbox" hidden></span></a>
+  <a href="#my-profile" data-r="my-profile"><span class="pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20.500c1-4 4-6 8-6s7 2 8 6"/></svg></span>Profile</a>
+</div></nav>
+
+<main><div class="wrap" id="view"><div class="empty">Loading the directory…</div></div></main>
+<div id="modal"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const PROV={AB:'Alberta',BC:'British Columbia',MB:'Manitoba',NB:'New Brunswick',NL:'Newfoundland and Labrador',NS:'Nova Scotia',NT:'Northwest Territories',NU:'Nunavut',ON:'Ontario',PE:'Prince Edward Island',QC:'Quebec',SK:'Saskatchewan',YT:'Yukon'};
+const SECTORS=['AgTech','AI & software','Cleantech','Consumer & retail','EdTech','Fintech','Food & beverage','GovTech','Health','Logistics','Manufacturing','Ocean tech','Other'];
+const STAGES=['Idea','MVP','Early revenue','Growth'];
+const ASKS=['Funding','Co-founder','Mentorship','Pilot customers','Talent','Partnerships','Grant advice'];
+const ROUNDS=['Pre-seed','Seed','Series A'];
+const ITYPES=['Angel','Angel group','VC fund','Family office','Corporate'];
+const ROUTES=['startups','raising','investors','my-profile','connections'];
+const TITLES={startups:['Startups','See what founders across Canada are building, and who needs a hand.'],raising:['Raising now','Startups looking for investment today.'],investors:['Investors','People and funds backing Canadian startups.'],connections:['Inbox','Intro requests you have sent and received.'],'my-profile':['Profile','Tell the community what you are building.']};
+
+const S={db:null,user:null,uid:null,canWrite:true,status:'loading',startups:[],investors:[],intros:[],watch:new Set(),
+  route:'startups',f:{q:'',prov:'',sector:'',stage:'',ask:'',has:''},watchOnly:false,role:'founder',dirty:false};
+
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD',notation:'compact',maximumFractionDigits:1}).format(n||0);
+const initials=n=>String(n||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const hue=s=>{let h=0;for(const c of String(s||''))h=(h*31+c.charCodeAt(0))%360;return h};
+const mono=(d,key)=>`<span class="mono" style="--h:${hue(d[key]||d.name)}" aria-hidden="true">${esc(initials(d.name))}</span>`;
+const opts=(arr,sel,blank)=>(blank?`<option value="">${esc(blank)}</option>`:'')+arr.map(v=>{const[val,lab]=Array.isArray(v)?v:[v,v];return `<option value="${esc(val)}"${val===sel?' selected':''}>${esc(lab)}</option>`}).join('');
+const provOpts=(sel,blank)=>opts(Object.entries(PROV),sel,blank);
+let toastT;function toast(m){$('#toast').textContent=m;clearTimeout(toastT);toastT=setTimeout(()=>$('#toast').textContent='',3500)}
+const url=u=>{u=String(u||'').trim();if(!u)return'';if(!/^https?:\/\//i.test(u))u='https://'+u;try{const x=new URL(u);return /^https?:$/.test(x.protocol)&&x.hostname.includes('.')?x.href:''}catch(_){return''}};
+const host=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(_){return''}};
+const demos=s=>(Array.isArray(s.demos)?s.demos:[]).map(d=>({t:String(d&&d.t||'Demo'),u:url(d&&d.u)})).filter(d=>d.u);
+const lines=v=>(Array.isArray(v)?v:[]).map(String).filter(Boolean);
+const mine=()=>S.startups.find(s=>s.id===S.uid);
+const myInv=()=>S.investors.find(s=>s.id===S.uid);
+const locked=()=>!S.db||!S.uid||!S.canWrite;
+
+/* ---------- views ---------- */
+function stats(){
+  const raising=S.startups.filter(s=>s.raising);
+  const provs=new Set(S.startups.map(s=>s.prov).filter(Boolean));
+  const el=$('#stats');el.hidden=S.route!=='startups';
+  el.innerHTML=[[S.startups.length,'startups'],[raising.length,'raising'],[S.investors.length,'investors'],[provs.size,'provinces']]
+    .map(([n,l])=>`<div><b>${n}</b>${l}</div>`).join('');
+  const got=received().length;const b=$('#inbox');b.hidden=!got;b.textContent=got;
+}
+function filtered(){
+  const f=S.f,q=f.q.trim().toLowerCase();
+  return [...S.startups].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).filter(s=>(!f.prov||s.prov===f.prov)&&(!f.sector||s.sector===f.sector)&&(!f.stage||s.stage===f.stage)&&(!f.ask||(s.asks||[]).includes(f.ask))&&(!f.has||(f.has==='demo'?demos(s).length:f.has==='hiring'?lines(s.roles).length:f.has==='web'?url(s.website):s.raising))&&
+    (!q||[s.name,s.tagline,s.what,s.city,s.sector,s.offers,lines(s.roles).join(' ')].join(' ').toLowerCase().includes(q)));
+}
+function card(s){
+  return `<article class="card" tabindex="0" role="button" data-open="s:${esc(s.id)}" aria-label="Open ${esc(s.name)}">
+    <div class="card-top">${mono(s,'sector')}<div><h3>${esc(s.name)}</h3>
+    <p class="loc">${esc([s.city,s.prov].filter(Boolean).join(', '))} · ${esc(s.sector||'')}</p></div></div>
+    <p class="tagline">${esc(s.tagline)}</p>
+    <div class="chips"><span class="chip">${esc(s.stage||'')}</span>${s.raising?`<span class="chip raise">Raising ${esc(money(s.amount))} ${esc(s.round||'')}</span>`:''}${demos(s).length?'<span class="chip">▶ Demo</span>':''}${lines(s.roles).length?'<span class="chip">Hiring</span>':''}${s.sample?'<span class="chip ex">Example</span>':''}${s.id===S.uid?'<span class="chip you">Yours</span>':''}</div>
+    ${(s.asks||[]).length?`<p class="asks">Looking for ${esc(s.asks.join(', '))}</p>`:''}</article>`;
+}
+function stateBox(){
+  if(S.status==='loading')return '<div class="empty">Loading the directory…</div>';
+  if(S.status==='nodb')return '<div class="empty">The directory could not load here. Open this page while signed in to Claude.</div>';
+  if(S.status==='slow')return '<div class="empty">The directory is taking a while to answer. It will appear here when it does.</div>';
+  return '';
+}
+const fsel=(id,inner,val)=>`<select id="${id}" class="${val?'on':''}" aria-label="Filter by ${id.slice(2)}">${inner}</select>`;
+const views={
+  startups(){return `<div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.500-3.500"/></svg>
+      <input type="search" id="q" placeholder="Search name, idea or city" aria-label="Search startups" value="${esc(S.f.q)}"></div>
+    <div class="chiprow">${fsel('f-prov',provOpts(S.f.prov,'Province'),S.f.prov)}${fsel('f-sector',opts(SECTORS,S.f.sector,'Sector'),S.f.sector)}${fsel('f-stage',opts(STAGES,S.f.stage,'Stage'),S.f.stage)}${fsel('f-ask',opts(ASKS,S.f.ask,'Looking for'),S.f.ask)}${fsel('f-has',opts([['demo','Has a demo'],['hiring','Hiring'],['web','Has a website'],['raising','Raising']],S.f.has,'More'),S.f.has)}</div>
+    <div id="results"></div><div id="fab"></div>`},
+  raising(){return `<div id="results"></div>`},
+  investors(){
+    const box=stateBox();if(box)return box;
+    if(!S.investors.length)return '<div class="empty">No investors listed yet. Add yours under Profile.</div>';
+    return `<div class="grid">${S.investors.map(v=>`<article class="card" tabindex="0" role="button" data-open="i:${esc(v.id)}" aria-label="Open ${esc(v.name)}">
+      <div class="card-top">${mono(v,'type')}<div><h3>${esc(v.name)}</h3><p class="loc">${esc(v.type||'')} · ${esc(PROV[v.prov]||'')}</p></div></div>
+      <p class="tagline">${esc(v.thesis)}</p>
+      <div class="chips"><span class="chip raise">${esc(v.cheque||'')}</span>${(v.stages||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}${v.sample?'<span class="chip ex">Example</span>':''}</div></article>`).join('')}</div>`},
+  'my-profile'(){
+    const lock=locked();
+    const seg=`<div class="seg" role="group" aria-label="Profile type"><button type="button" data-role="founder" aria-pressed="${S.role==='founder'}">I run a startup</button><button type="button" data-role="investor" aria-pressed="${S.role==='investor'}">I invest</button></div>`;
+    const warn=lock?`<p class="note">${S.status==='loading'?'Still loading. The form unlocks in a moment.':'You can look around, but saving is off for your account on this prototype.'}</p>`:'';
+    const dis=lock?' disabled':'';
+    if(S.role==='investor'){const v=myInv()||{};
+      return seg+warn+`<form class="profile" id="invForm">
+        <p class="gh">Basics</p><div class="fgroup"><div class="row">
+        <label class="f">Name or firm<input type="text" id="i-name" name="name" required maxlength="80" value="${esc(v.name)}"${dis}></label>
+        <label class="f">Type<select id="i-type" name="type"${dis}>${opts(ITYPES,v.type||'Angel')}</select></label>
+        <label class="f">Based in<select id="i-prov" name="prov"${dis}>${provOpts(v.prov||'ON')}</select></label></div></div>
+        <p class="gh">What you back</p><div class="fgroup"><div class="row"><label class="f">Typical cheque <span class="h">for example $25K to $100K</span><input type="text" id="i-cheque" name="cheque" maxlength="40" value="${esc(v.cheque)}"${dis}></label>
+        <label class="f">Sectors you like<input type="text" id="i-sectors" name="sectors" maxlength="120" value="${esc(v.sectors)}"${dis}></label></div>
+        <fieldset><legend>Stages you invest in</legend><div class="checks">${STAGES.map((x,i)=>`<label><input type="checkbox" id="i-st${i}" name="stages" value="${esc(x)}"${(v.stages||[]).includes(x)?' checked':''}${dis}>${esc(x)}</label>`).join('')}</div></fieldset>
+        <label class="f">What you look for<textarea id="i-thesis" name="thesis" maxlength="600"${dis}>${esc(v.thesis)}</textarea></label></div>
+        <p class="gh">Contact</p><div class="fgroup"><label class="f">How founders can reach you <span class="h">shown on your profile</span><input type="text" id="i-contact" name="contact" maxlength="120" value="${esc(v.contact)}"${dis}></label></div>
+        <div class="formfoot"><button class="btn wide"${dis}>${v.name?'Update investor profile':'List me as an investor'}</button>${v.name?`<button type="button" class="btn danger" data-act="del-inv"${dis}>Remove my investor profile</button>`:''}</div></form>`;}
+    const s=mine()||{};
+    return seg+warn+`<form class="profile" id="suForm">
+      <p class="gh">Basics</p><div class="fgroup"><div class="row">
+      <label class="f">Startup name<input type="text" id="s-name" name="name" required maxlength="80" value="${esc(s.name)}"${dis}></label>
+      <label class="f">Founder name<input type="text" id="s-founder" name="founder" maxlength="80" value="${esc(s.founder)}"${dis}></label></div>
+      <label class="f">One-line pitch<input type="text" id="s-tag" name="tagline" required maxlength="140" value="${esc(s.tagline)}"${dis}></label>
+      <div class="row"><label class="f">City<input type="text" id="s-city" name="city" maxlength="60" value="${esc(s.city)}"${dis}></label>
+      <label class="f">Province or territory<select id="s-prov" name="prov"${dis}>${provOpts(s.prov||'ON')}</select></label>
+      <label class="f">Sector<select id="s-sector" name="sector"${dis}>${opts(SECTORS,s.sector||'AI & software')}</select></label></div>
+      <div class="row"><label class="f">Stage<select id="s-stage" name="stage"${dis}>${opts(STAGES,s.stage||'Idea')}</select></label>
+      <label class="f">Team size<input type="number" id="s-team" name="team" min="1" max="5000" value="${esc(s.team||1)}"${dis}></label>
+      <label class="f">Founded<input type="number" id="s-year" name="year" min="1990" max="2100" value="${esc(s.year||new Date().getFullYear())}"${dis}></label></div></div>
+      <p class="gh">Your story</p><div class="fgroup">
+      <label class="f">What you are doing<textarea id="s-what" name="what" required maxlength="1200"${dis}>${esc(s.what)}</textarea></label>
+      <label class="f">Your plan for the next 12 months<textarea id="s-plan" name="plan" maxlength="1200"${dis}>${esc(s.plan)}</textarea></label>
+      <label class="f">Traction so far <span class="h">customers, revenue, pilots, grants such as IRAP or SR&amp;ED</span><input type="text" id="s-traction" name="traction" maxlength="200" value="${esc(s.traction)}"${dis}></label></div>
+      <p class="gh">Website and demos</p><div class="fgroup"><div class="row">
+      <label class="f">Website<input type="text" id="s-web" name="website" inputmode="url" autocapitalize="none" placeholder="yourstartup.ca" maxlength="200" value="${esc(s.website)}"${dis}></label>
+      <label class="f">LinkedIn page<input type="text" id="s-li" name="linkedin" inputmode="url" autocapitalize="none" placeholder="linkedin.com/company/…" maxlength="200" value="${esc(s.linkedin)}"${dis}></label></div>
+      ${[0,1,2].map(i=>{const d=(s.demos||[])[i]||{};return `<div class="row"><label class="f">Demo ${i+1} title <span class="h">${['such as Product video','such as Live demo','such as Pitch deck'][i]}</span><input type="text" id="s-dl${i}" name="dl${i}" maxlength="40" value="${esc(d.t)}"${dis}></label>
+      <label class="f">Demo ${i+1} link<input type="text" id="s-du${i}" name="du${i}" inputmode="url" autocapitalize="none" maxlength="300" value="${esc(d.u)}"${dis}></label></div>`}).join('')}
+      <p class="fine">Paste links to a YouTube or Loom video, a live demo, or a pitch deck. They open in a new tab.</p></div>
+      <p class="gh">Team and hiring</p><div class="fgroup">
+      <label class="f">Team members <span class="h">one per line, name and role</span><textarea id="s-teamlist" name="team_list" maxlength="600" placeholder="Priya Shah, CEO"${dis}>${esc(lines(s.team_list).join('\n'))}</textarea></label>
+      <label class="f">Open roles <span class="h">one per line</span><textarea id="s-roles" name="roles" maxlength="600" placeholder="Part-time React developer"${dis}>${esc(lines(s.roles).join('\n'))}</textarea></label></div>
+      <p class="gh">Give and get</p><div class="fgroup">
+      <fieldset><legend>What you are looking for</legend><div class="checks">${ASKS.map((x,i)=>`<label><input type="checkbox" id="s-ask${i}" name="asks" value="${esc(x)}"${(s.asks||[]).includes(x)?' checked':''}${dis}>${esc(x)}</label>`).join('')}</div></fieldset>
+      <label class="f">How you can help other founders<input type="text" id="s-offers" name="offers" maxlength="200" value="${esc(s.offers)}"${dis}></label></div>
+      <p class="gh">Fundraising</p><div class="fgroup">
+      <label class="f" style="grid-template-columns:1fr auto;align-items:center" for="s-raising">We are raising money now<input type="checkbox" class="switch" id="s-raising" name="raising"${s.raising?' checked':''}${dis}></label>
+      <div class="row"><label class="f">Amount in CAD<input type="number" id="s-amount" name="amount" min="0" step="1000" value="${esc(s.amount||'')}"${dis}></label>
+      <label class="f">Round<select id="s-round" name="round"${dis}>${opts(ROUNDS,s.round||'Pre-seed')}</select></label></div></div>
+      <p class="gh">Contact</p><div class="fgroup"><label class="f">How people can reach you <span class="h">email or LinkedIn, shown on your profile</span><input type="text" id="s-contact" name="contact" maxlength="120" value="${esc(s.contact)}"${dis}></label></div>
+      <div class="formfoot"><button class="btn wide"${dis}>${s.name?'Update my startup':'Publish my startup'}</button>${s.name?`<button type="button" class="btn danger" data-act="del-su"${dis}>Remove my startup</button>`:''}</div></form>
+      ${s.name?`<div class="profile" style="display:grid;gap:8px;max-width:720px;margin-top:8px"><p class="gh">Progress updates</p><div class="fgroup"><label class="f" for="updText">Share a milestone <span class="h">a new customer, a launch, a grant. Shown on your profile.</span></label>
+      <textarea id="updText" maxlength="280" placeholder="We signed our first paying customer."${dis}></textarea><button type="button" class="btn ghost wide" data-act="post-upd"${dis}>Post update</button>
+      <p class="fine">${lines((s.updates||[]).map(u=>u.text)).length} posted so far.</p></div></div>`:''}`},
+  connections(){
+    const box=stateBox();if(box)return box;
+    const rec=received(),sent=sentList();
+    const who=id=>{const s=S.startups.find(x=>x.id===id),v=S.investors.find(x=>x.id===id);return s?{n:s.name,o:'s:'+id}:v?{n:v.name,o:'i:'+id}:{n:'A member without a profile yet',o:''}};
+    const row=(w,e,dir)=>`<div class="item"><div class="meta">${dir} · ${new Date(e.at).toLocaleDateString('en-CA')}</div>${w.o?`<button class="linkbtn" data-open="${esc(w.o)}">${esc(w.n)}</button>`:`<b>${esc(w.n)}</b>`}<p class="msg">${esc(e.msg)}</p></div>`;
+    return `<div class="sec" style="margin-top:0"><h2>Received</h2>${rec.length?`<div class="group">${rec.map(r=>row(who(r.from),r,'From')).join('')}</div>`:'<div class="empty">No intro requests yet. Publish your profile so people can find you.</div>'}</div>
+      <div class="sec"><h2>Sent</h2>${sent.length?`<div class="group">${sent.map(e=>row(who(e.to),e,'To')).join('')}</div>`:'<div class="empty">Open any startup or investor and ask for an intro.</div>'}</div>`}
+};
+function received(){if(!S.uid)return[];const out=[];for(const d of S.intros){if(d.id===S.uid)continue;for(const e of Object.values(d.sent||{}))if(e&&e.to===S.uid)out.push({...e,from:d.id})}return out.sort((a,b)=>b.at-a.at)}
+function sentList(){const d=S.intros.find(x=>x.id===S.uid);return d?Object.values(d.sent||{}).sort((a,b)=>b.at-a.at):[]}
+
+function renderResults(){
+  const el=$('#results');if(!el)return;
+  const box=stateBox();if(box){el.innerHTML=box;return}
+  if(S.route==='startups'){const list=filtered();
+    el.innerHTML=`<p class="resultline">${list.length} of ${S.startups.length} startups</p>`+(list.length?`<div class="grid">${list.map(card).join('')}</div>`:`<div class="empty">${S.startups.length?'No startups match these filters.':'No startups yet. Be the first under Profile.'}</div>`);
+    const fab=$('#fab');if(fab)fab.innerHTML=(!mine()&&!locked())?`<a class="fab" href="#my-profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add my startup</a>`:'';
+  }else if(S.route==='raising'){
+    const all=S.startups.filter(s=>s.raising).sort((a,b)=>(b.amount||0)-(a.amount||0));
+    const list=S.watchOnly?all.filter(s=>S.watch.has(s.id)):all;
+    const total=list.reduce((t,s)=>t+(s.amount||0),0);
+    el.innerHTML=`<div class="summary"><div><b>${esc(money(total))}</b><span>being raised in total</span></div><span>${list.length} ${list.length===1?'startup':'startups'}</span></div>
+      <label class="switchrow" for="watchOnly">My watchlist only<input type="checkbox" class="switch" id="watchOnly"${S.watchOnly?' checked':''}></label>`+
+      (list.length?`<div class="group">${list.map(s=>`<div class="rowitem">${mono(s,'sector')}
+        <button class="rowmain" data-open="s:${esc(s.id)}"><b>${esc(s.name)}</b><span class="loc">${esc([s.round,s.stage,s.prov].filter(Boolean).join(' · '))}${s.sample?' · Example':''}</span>${s.traction?`<span class="loc">${esc(s.traction)}</span>`:''}</button>
+        <span class="amt">${esc(money(s.amount))}</span>
+        <button class="star" data-watch="${esc(s.id)}" aria-pressed="${S.watch.has(s.id)}" aria-label="Watch ${esc(s.name)}">${S.watch.has(s.id)?'★':'☆'}</button></div>`).join('')}</div>`
+      :`<div class="empty">${S.watchOnly?'Your watchlist is empty. Tap a star to save a startup.':'Nobody is raising right now.'}</div>`);
+  }
+}
+function render(){
+  document.querySelectorAll('#tabs a').forEach(a=>a.removeAttribute('aria-current'));
+  const a=$(`#tabs a[data-r="${S.route}"]`);if(a)a.setAttribute('aria-current','page');
+  $('#title').textContent=TITLES[S.route][0];$('#sub').textContent=TITLES[S.route][1];
+  $('#view').innerHTML=views[S.route]();renderResults();stats();
+}
+function refresh(){stats();if(S.route==='startups'||S.route==='raising')return renderResults();if(S.route==='my-profile'&&S.dirty)return;render()}
+
+/* ---------- detail sheet ---------- */
+function openSheet(key){
+  const[kind,id]=[key[0],key.slice(2)];
+  const d=(kind==='s'?S.startups:S.investors).find(x=>x.id===id);if(!d)return;
+  const sec=(h,v)=>v?`<h4>${h}</h4><div class="body">${esc(v)}</div>`:'';
+  const already=sentList().some(e=>e.to===id&&e.kind===kind);
+  const body=kind==='s'?`<p class="loc" style="margin-top:10px">${esc([d.city,PROV[d.prov]].filter(Boolean).join(', '))} · ${esc(d.sector||'')} · Founded ${esc(d.year||'')} · Team of ${esc(d.team||1)}</p>
+      <div class="chips" style="margin-top:10px"><span class="chip">${esc(d.stage||'')}</span>${d.raising?`<span class="chip raise">Raising ${esc(money(d.amount))} ${esc(d.round||'')}</span>`:''}${d.sample?'<span class="chip ex">Example</span>':''}</div>
+      <p class="tagline" style="margin-top:14px;font-size:1.05rem">${esc(d.tagline)}</p>
+      ${sec('What we are doing',d.what)}${sec('Plan for the next 12 months',d.plan)}${links(d)}${demoList(d)}${sec('Traction',d.traction)}${sec('Looking for',(d.asks||[]).join(', '))}${sec('Can help others with',d.offers)}${sec('Team',[d.founder&&!lines(d.team_list).length?d.founder:'',...lines(d.team_list)].filter(Boolean).join('\n'))}${sec('Open roles',lines(d.roles).join('\n'))}${updList(d)}${sec('Reach us',d.contact)}`
+    :`<p class="loc" style="margin-top:10px">${esc(d.type||'')} · ${esc(PROV[d.prov]||'')}</p><div class="chips" style="margin-top:10px"><span class="chip raise">${esc(d.cheque||'')}</span>${(d.stages||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}${d.sample?'<span class="chip ex">Example</span>':''}</div>
+      ${sec('What we look for',d.thesis)}${sec('Sectors',d.sectors)}${sec('Reach us',d.contact)}`;
+  const own=id===S.uid;
+  const acts=own?`<div style="margin-top:20px"><a class="btn wide" href="#my-profile" data-act="close">Edit my profile</a></div>`
+    :`<div class="introbox"><label class="f" for="introMsg">${already?'You already asked for an intro. Sending again replaces your note.':'Ask for an intro'}</label>
+      <textarea id="introMsg" maxlength="500" placeholder="Say who you are and how you can help or what you need."${locked()?' disabled':''}></textarea>
+      <button class="btn wide" data-act="intro" data-key="${esc(key)}"${locked()?' disabled':''}>Send intro request</button>
+      ${kind==='s'?`<button class="btn ghost wide" data-watch="${esc(id)}" data-label="1" aria-pressed="${S.watch.has(id)}">${S.watch.has(id)?'★ On watchlist':'☆ Add to watchlist'}</button>`:''}
+      <p class="fine">${d.sample?'This is an example profile, so nobody will reply. ':''}In this prototype intro notes are not private. Other members could read them.</p></div>`;
+  $('#modal').innerHTML=`<div class="overlay" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(d.name)}"><div class="grab"></div><div class="sheet-head">${mono(d,kind==='s'?'sector':'type')}<h2>${esc(d.name)}</h2><button class="x" data-act="close" aria-label="Close">✕</button></div>${body}${acts}</div></div>`;
+  $('#modal .x').focus();
+}
+const ext='target="_blank" rel="noopener noreferrer"';
+function links(d){const w=url(d.website),l=url(d.linkedin);if(!w&&!l)return'';
+  return `<div class="links">${w?`<a class="btn sm" href="${esc(w)}" ${ext}>Visit ${esc(host(w))} ↗</a>`:''}${l?`<a class="btn ghost sm" href="${esc(l)}" ${ext}>LinkedIn ↗</a>`:''}</div>`}
+function demoList(d){const ds=demos(d);if(!ds.length)return'';
+  return `<h4>Demos</h4><div class="demos">${ds.map(x=>`<a class="demo" href="${esc(x.u)}" ${ext}><span class="play" aria-hidden="true">▶</span><span><b>${esc(x.t)}</b><span class="loc">${esc(host(x.u))}</span></span><span aria-hidden="true">↗</span></a>`).join('')}</div>`}
+function updList(d){const us=(Array.isArray(d.updates)?d.updates:[]).filter(u=>u&&u.text).slice(0,6);if(!us.length)return'';
+  return `<h4>Progress updates</h4><div class="tl">${us.map(u=>`<div class="tli"><span class="loc">${esc(new Date(u.at).toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'}))}</span><div class="body">${esc(u.text)}</div></div>`).join('')}</div>`}
+const closeSheet=()=>{$('#modal').innerHTML=''};
+
+/* ---------- writes ---------- */
+async function guard(fn,ok){try{await fn();if(ok)toast(ok)}catch(e){toast(e&&e.code==='invalid_argument'?'Saving is off for your account on this prototype.':'That did not save. Try again in a moment.');if(e&&e.code==='invalid_argument'){S.canWrite=false}}}
+function saveStartup(form){const fd=new FormData(form),t=k=>String(fd.get(k)||'').trim();
+  const d={name:t('name'),founder:t('founder'),tagline:t('tagline'),city:t('city'),prov:t('prov'),sector:t('sector'),stage:t('stage'),team:Number(fd.get('team'))||1,year:Number(fd.get('year'))||null,
+    what:t('what'),plan:t('plan'),traction:t('traction'),asks:fd.getAll('asks'),offers:t('offers'),raising:fd.get('raising')==='on',amount:Number(fd.get('amount'))||0,round:t('round'),contact:t('contact'),updatedAt:Date.now(),
+    website:url(t('website')),linkedin:url(t('linkedin')),demos:[0,1,2].map(i=>({t:t('dl'+i)||'Demo',u:url(t('du'+i))})).filter(x=>x.u),
+    team_list:t('team_list').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,12),roles:t('roles').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,12),updates:(mine()||{}).updates||[]};
+  for(const k of['website','linkedin'])if(t(k)&&!d[k]){toast('Check the '+k+' link. It does not look like a web address.');return}
+  if(d.raising&&!d.amount){toast('Add the amount you are raising.');return}
+  guard(async()=>{await S.db.doc('startups/'+S.uid).set(d);S.dirty=false},'Your startup is live in the directory.')}
+function postUpdate(){const el=$('#updText'),text=el.value.trim(),m=mine();if(!m)return;if(!text){toast('Write your update first.');return}
+  guard(async()=>{await S.db.doc('startups/'+S.uid).update({updates:[{at:Date.now(),text},...(m.updates||[])].slice(0,20),updatedAt:Date.now()});el.value=''},'Update posted to your profile.')}
+function saveInvestor(form){const fd=new FormData(form),t=k=>String(fd.get(k)||'').trim();
+  const d={name:t('name'),type:t('type'),prov:t('prov'),cheque:t('cheque'),sectors:t('sectors'),stages:fd.getAll('stages'),thesis:t('thesis'),contact:t('contact'),updatedAt:Date.now()};
+  guard(async()=>{await S.db.doc('investors/'+S.uid).set(d);S.dirty=false},'Your investor profile is live.')}
+function sendIntro(key,msg){const kind=key[0],id=key.slice(2);if(!msg.trim()){toast('Write a short note first.');return}
+  guard(async()=>{const ref=S.db.doc('intros/'+S.uid),entry={to:id,kind,msg:msg.trim(),at:Date.now()},patch={sent:{[kind+'_'+id]:entry}};
+    const snap=await ref.get();if(snap.exists)await ref.update(patch);else await ref.set(patch);closeSheet()},'Intro request sent.')}
+function toggleWatch(id){if(!S.db||!S.uid){toast('Watchlist needs you to be signed in.');return}
+  const next=new Set(S.watch);next.has(id)?next.delete(id):next.add(id);S.watch=next;refresh();
+  document.querySelectorAll('#modal [data-watch]').forEach(b=>{b.setAttribute('aria-pressed',next.has(id));b.textContent=next.has(id)?'★ On watchlist':'☆ Add to watchlist'});
+  guard(()=>S.db.doc('data/users/'+S.uid+'/watchlist').set({ids:[...next]}))}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const w=e.target.closest('[data-watch]');if(w){toggleWatch(w.dataset.watch);return}
+  const act=e.target.closest('[data-act]');
+  if(act){const a=act.dataset.act;
+    if(a==='close'){if(act.classList.contains('overlay')&&e.target!==act)return;closeSheet();return}
+    if(a==='intro'){sendIntro(act.dataset.key,$('#introMsg').value);return}
+    if(a==='post-upd'){postUpdate();return}
+    if(a==='del-su'){guard(async()=>{await S.db.doc('startups/'+S.uid).delete();S.dirty=false},'Your startup was removed.');return}
+    if(a==='del-inv'){guard(async()=>{await S.db.doc('investors/'+S.uid).delete();S.dirty=false},'Your investor profile was removed.');return}}
+  const role=e.target.closest('[data-role]');if(role){S.role=role.dataset.role;S.dirty=false;render();return}
+  const o=e.target.closest('[data-open]');if(o)openSheet(o.dataset.open);
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeSheet();
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches('article[data-open]')){e.preventDefault();openSheet(e.target.dataset.open)}
+});
+document.addEventListener('input',e=>{
+  const id=e.target.id;
+  if(id==='q'){S.f.q=e.target.value;renderResults()}
+  else if(id&&id.startsWith('f-')){S.f[id.slice(2)]=e.target.value;e.target.classList.toggle('on',!!e.target.value);renderResults()}
+  else if(id==='watchOnly'){S.watchOnly=e.target.checked;renderResults()}
+  else if(e.target.closest('form.profile')||id==='updText')S.dirty=true;
+});
+document.addEventListener('submit',e=>{e.preventDefault();if(locked())return;if(e.target.id==='suForm')saveStartup(e.target);if(e.target.id==='invForm')saveInvestor(e.target)});
+function route(){const h=location.hash.slice(1);S.route=ROUTES.includes(h)?h:'startups';S.dirty=false;render();try{window.scrollTo(0,0)}catch(_){}}
+window.addEventListener('hashchange',route);
+
+/* ---------- data ---------- */
+async function start(){
+  route();
+  const use=n=>(window.claude&&window.claude.use)?window.claude.use(n).catch(()=>null):Promise.resolve(null);
+  const[db,user]=await Promise.all([use('db'),use('user')]);
+  S.db=db;S.user=user;
+  if(!db){ /* outside Claude: show the bundled examples, read-only */
+    try{const seed=await (await fetch('seed.json')).json();for(const[k,v]of Object.entries(seed)){const[c,id]=k.split('/');if(S[c])S[c].push({id,...v})}S.status='ready'}catch(_){S.status='nodb'}
+    render();return}
+  if(user){try{S.uid=await user.id();const c=await user.can('data.write');S.canWrite=c!==false}catch(_){}}
+  const slow=setTimeout(()=>{if(S.status==='loading'){S.status='slow';refresh()}},10000);
+  const done=()=>{if(S.status!=='ready'){clearTimeout(slow);S.status='ready'}};
+  const sub=(path,key)=>db.collection(path).onSnapshot(snap=>{S[key]=snap.docs.map(d=>({id:d.id,...d.data()}));if(!snap.metadata||!snap.metadata.fromCache||snap.docs.length)done();refresh()},()=>{done();refresh()});
+  sub('startups','startups');sub('investors','investors');sub('intros','intros');
+  if(S.uid)db.doc('data/users/'+S.uid+'/watchlist').onSnapshot(s=>{const d=s.exists?s.data():null;S.watch=new Set((d&&d.ids)||[]);refresh()},()=>{});
+  render();
+}
+start();
+</script>
+</body>
+</html>

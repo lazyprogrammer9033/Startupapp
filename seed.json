@@ -1,0 +1,364 @@
+{
+"startups/ex-tidewater": {
+"sample": true,
+"name": "Tidewater Sensors",
+"founder": "Example founder",
+"tagline": "Low-cost buoys that warn shellfish farms before the water turns.",
+"city": "Halifax",
+"prov": "NS",
+"sector": "Ocean tech",
+"stage": "MVP",
+"team": 3,
+"year": 2025,
+"what": "We build small solar buoys that track temperature, oxygen and acidity, and text farmers when conditions put their stock at risk.",
+"plan": "Run paid pilots with 10 farms in Nova Scotia and PEI, finish the second hardware version, and apply for IRAP support.",
+"traction": "4 pilot farms, 2 letters of intent",
+"asks": [
+"Funding",
+"Pilot customers",
+"Grant advice"
+],
+"offers": "Hardware prototyping and field testing advice",
+"raising": true,
+"amount": 400000,
+"round": "Pre-seed",
+"contact": "Example profile",
+"updatedAt": 1794000000000,
+"website": "https://example.com/tidewater",
+"linkedin": "https://example.com/tidewater-linkedin",
+"demos": [
+{
+"t": "Buoy in the water (2 min video)",
+"u": "https://example.com/tidewater-video"
+},
+{
+"t": "Live dashboard demo",
+"u": "https://example.com/tidewater-demo"
+}
+],
+"team_list": [
+"Example founder, CEO",
+"Example engineer, Hardware lead",
+"Example biologist, Science advisor"
+],
+"roles": [
+"Part-time firmware developer"
+],
+"updates": [
+{
+"at": 1793500000000,
+"text": "Fourth pilot farm installed in Mahone Bay."
+},
+{
+"at": 1790000000000,
+"text": "Second buoy version survived its first storm season."
+}
+]
+},
+"startups/ex-prairie": {
+"sample": true,
+"name": "Prairie Ledger",
+"founder": "Example founder",
+"tagline": "Bookkeeping built for grain farms, from seed costs to crop insurance.",
+"city": "Saskatoon",
+"prov": "SK",
+"sector": "AgTech",
+"stage": "Early revenue",
+"team": 6,
+"year": 2024,
+"what": "Farm accounting software that pulls in elevator tickets and input invoices so farmers always know their cost per acre.",
+"plan": "Grow from 120 to 600 paying farms, add Manitoba and Alberta, and hire two support staff before seeding season.",
+"traction": "120 paying farms, $14K monthly revenue",
+"asks": [
+"Funding",
+"Talent",
+"Partnerships"
+],
+"offers": "Selling to rural customers, SR&ED claims",
+"raising": true,
+"amount": 1200000,
+"round": "Seed",
+"contact": "Example profile",
+"updatedAt": 1794000000000,
+"website": "https://example.com/prairie-ledger",
+"demos": [
+{
+"t": "Product walkthrough",
+"u": "https://example.com/prairie-video"
+},
+{
+"t": "Pitch deck",
+"u": "https://example.com/prairie-deck"
+}
+],
+"team_list": [
+"Example founder, CEO",
+"Example accountant, Head of product"
+],
+"roles": [
+"Customer support lead (Saskatoon)",
+"Full-stack developer"
+],
+"updates": [
+{
+"at": 1793800000000,
+"text": "Passed 120 paying farms."
+}
+]
+},
+"startups/ex-portage": {
+"sample": true,
+"name": "Portage Health",
+"founder": "Example founder",
+"tagline": "Follow-up care by text for patients far from a clinic.",
+"city": "Winnipeg",
+"prov": "MB",
+"sector": "Health",
+"stage": "MVP",
+"team": 4,
+"year": 2025,
+"what": "Clinics use our tool to check in on patients after a visit by text message, in English, French, Cree and Ojibwe.",
+"plan": "Sign three clinic pilots, complete a privacy review, and measure whether follow-ups cut repeat visits.",
+"traction": "1 clinic pilot running",
+"asks": [
+"Pilot customers",
+"Mentorship"
+],
+"offers": "Health privacy rules, working with clinics",
+"raising": false,
+"amount": 0,
+"round": "",
+"contact": "Example profile",
+"updatedAt": 1794000000000
+},
+"startups/ex-kiln": {
+"sample": true,
+"name": "Kiln & Co",
+"founder": "Example founder",
+"tagline": "Refillable home cleaning products delivered across the GTA.",
+"city": "Brampton",
+"prov": "ON",
+"sector": "Consumer & retail",
+"stage": "Early revenue",
+"team": 2,
+"year": 2024,
+"what": "We deliver cleaning concentrates in returnable glass and pick up the empties on the next order.",
+"plan": "Reach 1,000 subscribers, open a second refill depot in Mississauga, and land one grocery partner.",
+"traction": "310 subscribers, 70% reorder rate",
+"asks": [
+"Partnerships",
+"Mentorship",
+"Co-founder"
+],
+"offers": "Local delivery routes, subscription pricing",
+"raising": false,
+"amount": 0,
+"round": "",
+"contact": "Example profile",
+"updatedAt": 1794000000000,
+"website": "https://example.com/kiln",
+"demos": [
+{
+"t": "How a refill works",
+"u": "https://example.com/kiln-video"
+}
+],
+"updates": [
+{
+"at": 1793000000000,
+"text": "Reached 300 subscribers across Brampton and Mississauga."
+}
+]
+},
+"startups/ex-boreal": {
+"sample": true,
+"name": "Boréal Batteries",
+"founder": "Example founder",
+"tagline": "Second-life EV batteries as backup power for remote communities.",
+"city": "Trois-Rivières",
+"prov": "QC",
+"sector": "Cleantech",
+"stage": "Growth",
+"team": 22,
+"year": 2021,
+"what": "We test and repackage used electric vehicle batteries into storage units that replace diesel generators.",
+"plan": "Open a second assembly line, deliver 40 units to northern Quebec and Labrador, and start sales in Ontario.",
+"traction": "$2.1M revenue last year, 18 units installed",
+"asks": [
+"Funding",
+"Talent"
+],
+"offers": "Manufacturing scale-up, government procurement",
+"raising": true,
+"amount": 5000000,
+"round": "Series A",
+"contact": "Example profile",
+"updatedAt": 1794000000000,
+"website": "https://example.com/boreal",
+"linkedin": "https://example.com/boreal-linkedin",
+"demos": [
+{
+"t": "Factory tour video",
+"u": "https://example.com/boreal-tour"
+}
+],
+"roles": [
+"Battery test technician",
+"Sales lead, Ontario"
+],
+"updates": [
+{
+"at": 1793900000000,
+"text": "18th storage unit delivered and switched on."
+}
+]
+},
+"startups/ex-chinook": {
+"sample": true,
+"name": "Chinook Freight",
+"founder": "Example founder",
+"tagline": "Fills empty truck space on Prairie routes.",
+"city": "Calgary",
+"prov": "AB",
+"sector": "Logistics",
+"stage": "Early revenue",
+"team": 5,
+"year": 2024,
+"what": "Small shippers book spare room on trucks already driving between Calgary, Regina and Winnipeg.",
+"plan": "Add Edmonton and Saskatoon lanes, reach 50 carriers, and build automated pricing.",
+"traction": "23 carriers, 400 loads moved",
+"asks": [
+"Funding",
+"Pilot customers"
+],
+"offers": "Marketplace launch tips, carrier contacts",
+"raising": true,
+"amount": 800000,
+"round": "Seed",
+"contact": "Example profile",
+"updatedAt": 1794000000000
+},
+"startups/ex-sitka": {
+"sample": true,
+"name": "Sitka Learn",
+"founder": "Example founder",
+"tagline": "Short trades-math lessons for apprentices on their phones.",
+"city": "Victoria",
+"prov": "BC",
+"sector": "EdTech",
+"stage": "Idea",
+"team": 1,
+"year": 2026,
+"what": "Five-minute lessons that help apprentices pass the math part of their Red Seal exams.",
+"plan": "Find a technical co-founder, test with 50 apprentices, and partner with one college.",
+"traction": "30 apprentices on the waitlist",
+"asks": [
+"Co-founder",
+"Mentorship",
+"Grant advice"
+],
+"offers": "Curriculum design, trades training contacts",
+"raising": false,
+"amount": 0,
+"round": "",
+"contact": "Example profile",
+"updatedAt": 1794000000000
+},
+"startups/ex-northlight": {
+"sample": true,
+"name": "Northlight Permits",
+"founder": "Example founder",
+"tagline": "Building permit tracking for small northern towns.",
+"city": "Yellowknife",
+"prov": "NT",
+"sector": "GovTech",
+"stage": "MVP",
+"team": 3,
+"year": 2025,
+"what": "Town offices and builders see every permit, inspection and deadline in one place instead of paper files.",
+"plan": "Sign five municipalities across the territories and add an inspection scheduling tool.",
+"traction": "2 towns in a paid trial",
+"asks": [
+"Pilot customers",
+"Partnerships"
+],
+"offers": "Selling to municipalities",
+"raising": false,
+"amount": 0,
+"round": "",
+"contact": "Example profile",
+"updatedAt": 1794000000000
+},
+"startups/ex-harbourline": {
+"sample": true,
+"name": "Harbourline Pay",
+"founder": "Example founder",
+"tagline": "Same-day pay for fish harvesters and seasonal crews.",
+"city": "St. John's",
+"prov": "NL",
+"sector": "Fintech",
+"stage": "Idea",
+"team": 2,
+"year": 2026,
+"what": "Crews get paid the day the catch lands, and processors settle later through us.",
+"plan": "Confirm the licensing path, sign one processor as a design partner, and build the first version.",
+"traction": "Interviews with 40 harvesters",
+"asks": [
+"Funding",
+"Mentorship",
+"Partnerships"
+],
+"offers": "Atlantic fishery contacts",
+"raising": true,
+"amount": 250000,
+"round": "Pre-seed",
+"contact": "Example profile",
+"updatedAt": 1794000000000
+},
+"investors/ex-redfife": {
+"sample": true,
+"name": "Red Fife Angels",
+"type": "Angel group",
+"prov": "SK",
+"cheque": "$50K to $250K",
+"sectors": "AgTech, food, logistics",
+"stages": [
+"MVP",
+"Early revenue"
+],
+"thesis": "Prairie founders solving problems they have lived. We like to see paying customers, even a handful.",
+"contact": "Example profile",
+"updatedAt": 1794000000000
+},
+"investors/ex-granite": {
+"sample": true,
+"name": "Granite Shield Ventures",
+"type": "VC fund",
+"prov": "ON",
+"cheque": "$500K to $3M",
+"sectors": "Software, fintech, health",
+"stages": [
+"Early revenue",
+"Growth"
+],
+"thesis": "Seed and Series A in Canadian software companies with early revenue and a clear path to selling outside Canada.",
+"contact": "Example profile",
+"updatedAt": 1794000000000
+},
+"investors/ex-lachine": {
+"sample": true,
+"name": "Lachine Canal Capital",
+"type": "Family office",
+"prov": "QC",
+"cheque": "$100K to $1M",
+"sectors": "Cleantech, manufacturing",
+"stages": [
+"MVP",
+"Early revenue",
+"Growth"
+],
+"thesis": "Patient money for hardware and clean energy companies building in Quebec and Atlantic Canada.",
+"contact": "Example profile",
+"updatedAt": 1794000000000
+}
+}
